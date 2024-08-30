@@ -1,5 +1,6 @@
 from bhakti.const import EMPTY_SET, EMPTY_STR, EMPTY_DICT
 from bhakti.database.dipamkara.exception import DipamkaraSyntaxError
+from bhakti.database.dipamkara.exception.dipamkara_index_error import DipamkaraIndexError
 
 
 class DipamkaraDsl:
@@ -101,6 +102,9 @@ class DipamkaraDsl:
         key = tokens[0]
         if key not in self.__inverted_index.keys():
             raise DipamkaraSyntaxError(message=f"Index \"{key}\" not exist")
+        elif self.__inverted_index[key] == EMPTY_DICT():
+            del self.__inverted_index[key]
+            raise DipamkaraSyntaxError(message=f"Index \"{key}\" not exist")
         op = tokens[1]  # > < >= <= != ==
         if self.is_number(tokens[2]):
             value = float(tokens[2])
@@ -186,3 +190,10 @@ class DipamkaraDsl:
 
 DIPAMKARA_DSL = DipamkaraDsl(expr=EMPTY_STR(), inverted_index=EMPTY_DICT())
 DIPAMKARA_DSL_KEYWORDS = tuple(('>', '<', '>=', '<=', '==', '!=', '&&', '||'))
+
+
+def find_keywords_of_dipamkara_dsl(text: str) -> bool:
+    for _kw in DIPAMKARA_DSL_KEYWORDS:
+        if _kw in text:
+            raise DipamkaraIndexError(f'"{text}" contains keyword "{_kw}" of {DIPAMKARA_DSL_KEYWORDS}')
+    return False
