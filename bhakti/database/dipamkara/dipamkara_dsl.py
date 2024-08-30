@@ -87,6 +87,16 @@ class DipamkaraDsl:
             result.append(sub_expr)
         return result
 
+    def equals_likely(self, challenger_str: str, object_str: str) -> bool:
+        if challenger_str.startswith('%') and object_str.startswith('%'):
+            return challenger_str in object_str
+        elif challenger_str.startswith('%'):
+            return object_str.endswith(challenger_str)
+        elif challenger_str.endswith('%'):
+            return object_str.startswith(challenger_str)
+        else:
+            return challenger_str == object_str
+
     def process_atomic(self, tokens: list[str]) -> set:
         key = tokens[0]
         if key not in self.__inverted_index.keys():
@@ -139,14 +149,14 @@ class DipamkaraDsl:
                     if _value == float(value):
                         result_set.add(_key)
                 else:
-                    if _value == value:
+                    if self.equals_likely(challenger_str=value, object_str=_value):
                         result_set.add(_key)
             if op == '!=':
                 if isinstance(_value, float):
                     if _value != float(value):
                         result_set.add(_key)
                 else:
-                    if _value != value:
+                    if not self.equals_likely(challenger_str=value, object_str=_value):
                         result_set.add(_key)
         return result_set
 
