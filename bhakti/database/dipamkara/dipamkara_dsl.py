@@ -89,12 +89,12 @@ class DipamkaraDsl:
         return result
 
     def equals_likely(self, challenger_str: str, object_str: str) -> bool:
-        if challenger_str.startswith('%') and object_str.startswith('%'):
-            return challenger_str in object_str
+        if challenger_str.startswith('%') and challenger_str.endswith('%'):
+            return challenger_str[1:-1] in object_str
         elif challenger_str.startswith('%'):
-            return object_str.endswith(challenger_str)
+            return object_str.endswith(challenger_str[1:])
         elif challenger_str.endswith('%'):
-            return object_str.startswith(challenger_str)
+            return object_str.startswith(challenger_str[:-1])
         else:
             return challenger_str == object_str
 
@@ -121,42 +121,42 @@ class DipamkaraDsl:
             if isinstance(value, str) and not isinstance(_value, str):
                 _value = str(_value)
             if op == '>':
-                if isinstance(_value, float):
+                if isinstance(_value, float | int):
                     if _value > float(value):
                         result_set.add(_key)
                 else:
                     if _value > value:
                         result_set.add(_key)
             if op == '>=':
-                if isinstance(_value, float):
+                if isinstance(_value, float | int):
                     if _value >= float(value):
                         result_set.add(_key)
                 else:
                     if _value >= value:
                         result_set.add(_key)
             if op == '<':
-                if isinstance(_value, float):
+                if isinstance(_value, float | int):
                     if _value < float(value):
                         result_set.add(_key)
                 else:
                     if _value < value:
                         result_set.add(_key)
             if op == '<=':
-                if isinstance(_value, float):
+                if isinstance(_value, float | int):
                     if _value <= float(value):
                         result_set.add(_key)
                 else:
                     if _value <= value:
                         result_set.add(_key)
             if op == '==':
-                if isinstance(_value, float):
+                if isinstance(_value, float | int):
                     if _value == float(value):
                         result_set.add(_key)
                 else:
                     if self.equals_likely(challenger_str=value, object_str=_value):
                         result_set.add(_key)
             if op == '!=':
-                if isinstance(_value, float):
+                if isinstance(_value, float | int):
                     if _value != float(value):
                         result_set.add(_key)
                 else:
