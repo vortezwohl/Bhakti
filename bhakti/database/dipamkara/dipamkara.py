@@ -94,6 +94,8 @@ class Dipamkara:
                     self.__auto_increment_ptr,
                     int(entry)
                 )
+            # 从先前的序号加一得到当前最新文档初始序号
+            self.__auto_increment_ptr += 1
             # load documents into memory
             if self.__cached:
                 for _id in entries:
@@ -120,6 +122,14 @@ class Dipamkara:
 
     def is_fully_cached(self):
         return self.__cached
+
+    @lock_on(vector_modify_lock)
+    @lock_on(inverted_index_modify_lock)
+    async def save(self):
+        with open(self.__archive_vec, 'w', encoding=UTF_8) as _vec_file:
+            _vec_file.write(json.dumps(self.__vector, ensure_ascii=True))
+        with open(self.__archive_inv, 'w', encoding=UTF_8) as _inv_file:
+            _inv_file.write(json.dumps(self.__inverted_index, ensure_ascii=False))
 
     @lock_on(auto_increment_lock)
     async def auto_increment(self) -> None:
@@ -190,6 +200,23 @@ class Dipamkara:
         if not write_success:
             os.remove(doc_path)
         return write_success
+
+    # 这里没有给 document 上锁，因为我只需要做删除操作，如果 document 存在则从缓存中删除，
+    # 如果不存在，那么由于 auto_increment 是持续递增的， 不会存在相同的 auto_increment，这意味着如果不存在，就是已经被删除了
+    @lock_on(vector_modify_lock)
+    async def invalidate_cached_doc_by_vector(self, vector: str | numpy.ndarray) -> bool:
+        if isinstance(vector, str):
+            pass
+        elif isinstance(vector, numpy.ndarray):
+            vector = json.dumps(vector.tolist(), ensure_ascii=True)
+        else:
+            raise DipamkaraVectorError(f'Value {vector} is not a vector')
+        _doc_id = self.__vector[vector]
+        if _doc_id in self.__document.keys():
+            del self.__document[_doc_id]
+            return True
+        else:
+            return False
 
     @lock_on(vector_modify_lock)
     @lock_on(inverted_index_modify_lock)
