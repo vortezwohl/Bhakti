@@ -36,6 +36,7 @@ from bhakti.database.dipamkara.decorator.lock_on import lock_on
 __VERSION__ = "0.1.0"
 __AUTHOR__ = "Vortez Wohl"
 
+
 class Dipamkara:
     def __init__(
             self,
