@@ -6,3 +6,6 @@ log.basicConfig(
     level=logging.DEBUG,
     format='[%(levelname)s] at %(asctime)s : %(message)s'
 )
+
+DEBUG = 'debug'
+INFO = 'info'

@@ -18,7 +18,6 @@ from bhakti.const import (
 )
 from bhakti.database.dipamkara.dipamkara_dsl import (
     DIPAMKARA_DSL,
-    DIPAMKARA_DSL_KEYWORDS,
     find_keywords_of_dipamkara_dsl
 )
 from bhakti.database.dipamkara.lock import (
@@ -27,12 +26,15 @@ from bhakti.database.dipamkara.lock import (
     document_modify_lock,
     auto_increment_lock
 )
+from bhakti.util.logger import log
 from bhakti.database.dipamkara.exception.dipamkara_vector_error import DipamkaraVectorError
 from bhakti.database.dipamkara.exception.dipamkara_index_error import DipamkaraIndexError
 from bhakti.database.dipamkara.exception.dipamkara_index_existence_error import DipamkaraIndexExistenceError
 from bhakti.database.dipamkara.exception.dipamkara_vector_existence_error import DipamkaraVectorExistenceError
 from bhakti.database.dipamkara.decorator.lock_on import lock_on
 
+__VERSION__ = "0.1.0"
+__AUTHOR__ = "Vortez Wohl"
 
 class Dipamkara:
     def __init__(
@@ -62,8 +64,10 @@ class Dipamkara:
         self.__auto_increment_ptr = NULL
         self.__dimension = dimension
 
-        # todo .vec .inv 采用异步快照，.zen 采用同步存储
+        log.info(f'Dipamkara v{__VERSION__}')
+        log.info(f'Initializing...')
 
+        # .vec .inv 采用异步快照，.zen 采用同步存储
         if not os.path.exists(archive_path):
             os.mkdir(archive_path)
         # always cache
@@ -71,6 +75,7 @@ class Dipamkara:
             with open(self.__archive_inv, 'w') as inv_file:
                 inv_file.write(EMPTY_STR())
         else:
+            log.info('Loading indices...')
             with open(self.__archive_inv, 'r', encoding=UTF_8) as inv_file:
                 _inv_file_text = inv_file.read()
             if _inv_file_text != EMPTY_STR():
@@ -80,6 +85,7 @@ class Dipamkara:
             with open(self.__archive_vec, 'w') as vec_file:
                 vec_file.write(EMPTY_STR())
         else:
+            log.info('Loading vectors...')
             with open(self.__archive_vec, 'r', encoding=UTF_8) as vec_file:
                 _vec_file_text = vec_file.read()
             if _vec_file_text != EMPTY_STR():
@@ -88,6 +94,7 @@ class Dipamkara:
         if not os.path.exists(self.__archive_zen):
             os.mkdir(self.__archive_zen)
         else:
+            log.info('Loading auto_increment...')
             entries = os.listdir(self.__archive_zen)
             for entry in entries:
                 self.__auto_increment_ptr = max(
@@ -98,12 +105,14 @@ class Dipamkara:
             self.__auto_increment_ptr += 1
             # load documents into memory
             if self.__cached:
+                log.info('Caching data...')
                 for _id in entries:
                     _path = os.path.join(self.__archive_zen, _id)
                     with open(_path, 'r', encoding=UTF_8) as _doc:
                         _doc_text = _doc.read()
                     if _doc_text != EMPTY_STR():
                         self.__document[int(_id)] = json.loads(_doc_text)
+        log.info('Dipamkara initialized')
 
     def get_vectors(self):
         return dict(self.__vector)
@@ -123,18 +132,18 @@ class Dipamkara:
     def is_fully_cached(self):
         return self.__cached
 
-    @lock_on(vector_modify_lock)
-    @lock_on(inverted_index_modify_lock)
     async def save(self):
         with open(self.__archive_vec, 'w', encoding=UTF_8) as _vec_file:
             _vec_file.write(json.dumps(self.__vector, ensure_ascii=True))
         with open(self.__archive_inv, 'w', encoding=UTF_8) as _inv_file:
             _inv_file.write(json.dumps(self.__inverted_index, ensure_ascii=False))
 
+    # 在线程中，无法使用异步锁上下文
     @lock_on(auto_increment_lock)
     async def auto_increment(self) -> None:
         self.__auto_increment_ptr += 1
 
+    # create 后保存索引
     @lock_on(vector_modify_lock)
     @lock_on(inverted_index_modify_lock)
     @lock_on(document_modify_lock)
@@ -197,6 +206,7 @@ class Dipamkara:
                 # respond success
                 write_success = True
                 await self.auto_increment()
+                await self.save()
         if not write_success:
             os.remove(doc_path)
         return write_success
@@ -211,17 +221,19 @@ class Dipamkara:
             vector = json.dumps(vector.tolist(), ensure_ascii=True)
         else:
             raise DipamkaraVectorError(f'Value {vector} is not a vector')
-        _doc_id = self.__vector[vector]
-        if _doc_id in self.__document.keys():
-            del self.__document[_doc_id]
-            return True
+        if vector in self.__vector.keys():
+            _doc_id = self.__vector[vector]
+            if _doc_id in self.__document.keys():
+                del self.__document[_doc_id]
+                return True
         else:
-            return False
+            raise DipamkaraVectorExistenceError(f'Vector {vector} not exists')
 
+    # remove 后条件保存索引
     @lock_on(vector_modify_lock)
     @lock_on(inverted_index_modify_lock)
     @lock_on(document_modify_lock)
-    async def remove_by_vector(self, vector: str | numpy.ndarray) -> bool:
+    async def remove_by_vector(self, vector: str | numpy.ndarray, insta_save: bool = True) -> bool:
         if isinstance(vector, str):
             pass
         elif isinstance(vector, numpy.ndarray):
@@ -241,15 +253,20 @@ class Dipamkara:
             for _index in self.__inverted_index.keys():
                 if vector in self.__inverted_index[_index].keys():
                     del self.__inverted_index[_index][vector]
+            if insta_save:
+                await self.save()
             return True
         return False
 
+    # remove 若干文档后，再保存索引
     async def indexed_remove(self, query: str) -> bool:
         vectors = await self.indexed_query(query)
         for vector in vectors:
-            await self.remove_by_vector(vector)
+            await self.remove_by_vector(vector, insta_save=False)
+        await self.save()
         return True
 
+    # create index 后保存索引
     # 因为 update_index 中调用了 find_doc_by_vector，所以此处为 vector 和 document 上锁
     @lock_on(vector_modify_lock)
     @lock_on(inverted_index_modify_lock)
@@ -259,15 +276,20 @@ class Dipamkara:
             if index in self.__inverted_index.keys():
                 raise DipamkaraIndexExistenceError(f'Index "{index}" exists')
             self.__inverted_index[index] = EMPTY_DICT()
-            return self.__update_index(index=index, reset=False)
+            self.__update_index(index=index, reset=False)
+            await self.save()
+            return self.__inverted_index[index]
 
+    # remove index 后保存索引
     @lock_on(inverted_index_modify_lock)
     async def remove_index(self, index: str) -> bool:
         if index not in self.__inverted_index.keys():
             raise DipamkaraIndexExistenceError(f'Index "{index}" not exists')
         del self.__inverted_index[index]
+        await self.save()
         return True
 
+    # mod doc 后保存索引
     # 此处为 vector 上锁，因为 vector 在此作为唯一性索引
     # 为 document 上锁，因为 find_doc_by_vector 需要读取 document
     # 为 inverted_index 上锁，因为都上这么多锁了，不差这一个
@@ -293,6 +315,7 @@ class Dipamkara:
         for _vec in _object_dict:
             if _vec == vector:
                 _object_dict[_vec] = value
+        await self.save()
 
     # 这里为 inverted_index 上锁，因为该方法的返回值会用做索引用于删除 document
     @lock_on(inverted_index_modify_lock)
@@ -412,7 +435,7 @@ class Dipamkara:
                 return __doc_dict
 
     # 该方法的两处调用都为 vector 和 inverted_index 加了锁，所以这里不加，避免死锁
-    def __update_index(self, index: str, reset: bool):
+    def __update_index(self, index: str, reset: bool) -> None:
         if index not in self.__inverted_index.keys():
             raise DipamkaraIndexExistenceError(f'Index "{index}" not exists')
         if reset:
