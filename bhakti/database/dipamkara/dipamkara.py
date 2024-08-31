@@ -2,13 +2,6 @@ import numpy
 import os
 import json
 
-from medusa.embedding import (
-    COSINE,
-    EUCLIDEAN_L2,
-    l2_normalize,
-    find_distance
-)
-
 from bhakti.const import (
     EMPTY_DICT,
     EMPTY_STR,
@@ -26,6 +19,7 @@ from bhakti.database.dipamkara.lock import (
     document_modify_lock,
     auto_increment_lock
 )
+from bhakti.database.dipamkara.embedding import l2_normalize, find_distance
 from bhakti.util.logger import log
 from bhakti.database.dipamkara.exception.dipamkara_vector_error import DipamkaraVectorError
 from bhakti.database.dipamkara.exception.dipamkara_index_error import DipamkaraIndexError
@@ -339,8 +333,8 @@ class Dipamkara:
         for _vec in self.__vector.keys():
             _nd_arr = numpy.asarray(json.loads(_vec))
             _result[_vec] = find_distance(
-                img1=l2_normalize(_nd_arr),
-                img2=l2_vector_challenger,
+                vector1=l2_normalize(_nd_arr),
+                vector2=l2_vector_challenger,
                 metric=metric
             )
         if top_k > len(_result.keys()):
@@ -361,8 +355,8 @@ class Dipamkara:
         for _vec in vectors_challenged:
             _nd_arr = numpy.asarray(json.loads(_vec))
             _result[_vec] = find_distance(
-                img1=l2_normalize(_nd_arr),
-                img2=l2_vector_challenger,
+                vector1=l2_normalize(_nd_arr),
+                vector2=l2_vector_challenger,
                 metric=metric
             )
         if top_k > len(_result.keys()):
