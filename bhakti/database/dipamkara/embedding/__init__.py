@@ -2,9 +2,7 @@ from .distance import (
     find_distance,
     find_euclidean_distance,
     find_cosine_distance,
-    COSINE,
-    EUCLIDEAN,
-    EUCLIDEAN_L2,
-    DEFAULT_METRIC
+    find_chebyshev_distance
 )
-from .normalize import l2_normalize
+from .metric import Metric
+from .normalize import l2_normalize, z_score_normalize
