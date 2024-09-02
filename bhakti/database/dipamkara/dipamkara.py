@@ -19,7 +19,7 @@ from bhakti.database.dipamkara.lock import (
     document_modify_lock,
     auto_increment_lock
 )
-from bhakti.database.dipamkara.embedding import l2_normalize, find_distance
+from bhakti.database.dipamkara.embedding import find_distance, Metric
 from bhakti.util.logger import log
 from bhakti.database.dipamkara.exception.dipamkara_vector_error import DipamkaraVectorError
 from bhakti.database.dipamkara.exception.dipamkara_index_error import DipamkaraIndexError
@@ -255,7 +255,7 @@ class Dipamkara:
 
     # remove 若干文档后，再保存索引
     async def indexed_remove(self, query: str) -> bool:
-        vectors = await self.indexed_query(query)
+        vectors = await self.__indexed_query(query)
         for vector in vectors:
             await self.remove_by_vector(vector, insta_save=False)
         await self.save()
@@ -314,7 +314,7 @@ class Dipamkara:
 
     # 这里为 inverted_index 上锁，因为该方法的返回值会用做索引用于删除 document
     @lock_on(inverted_index_modify_lock)
-    async def indexed_query(self, query: str) -> set[str]:
+    async def __indexed_query(self, query: str) -> set[str]:
         return (DIPAMKARA_DSL
                 .update_expr(expr=query)
                 .update_inverted_index(inverted_index=self.__inverted_index)
@@ -325,51 +325,52 @@ class Dipamkara:
     async def vector_query(
             self,
             vector: numpy.ndarray,
-            metric: str,
+            metric: Metric,
             top_k: int
-    ) -> list[tuple[str, float]]:
-        _result: dict[str, float] = EMPTY_DICT()
-        l2_vector_challenger = l2_normalize(vector)
+    ) -> list[tuple[numpy.ndarray, float]]:
+        _result: list[tuple[numpy.ndarray, float]] = EMPTY_LIST()
         for _vec in self.__vector.keys():
             _nd_arr = numpy.asarray(json.loads(_vec))
-            _result[_vec] = find_distance(
-                vector1=l2_normalize(_nd_arr),
-                vector2=l2_vector_challenger,
+            _tmp_tuple = _nd_arr, find_distance(
+                vector1=vector,
+                vector2=_nd_arr,
                 metric=metric
             )
-        if top_k > len(_result.keys()):
-            top_k = len(_result.keys())
-        return sorted(_result.items(), key=lambda item: item[1])[:top_k]
+            _result.append(_tmp_tuple)
+        if top_k > len(_result):
+            top_k = len(_result)
+        return sorted(_result, key=lambda item: item[1])[:top_k]
 
     # 方法中 indexed_query 调用拥有 inverted_index 锁
     async def indexed_vector_query(
             self,
             query: str,
             vector: numpy.ndarray,
-            metric: str,
+            metric: Metric,
             top_k: int
-    ) -> list[tuple[str, float]]:
-        _result: dict[str, float] = EMPTY_DICT()
-        l2_vector_challenger = l2_normalize(vector)
-        vectors_challenged = await self.indexed_query(query)
+    ) -> list[tuple[numpy.ndarray, float]]:
+        _result: list[tuple[numpy.ndarray, float]] = EMPTY_LIST()
+        vectors_challenged = await self.__indexed_query(query)
         for _vec in vectors_challenged:
             _nd_arr = numpy.asarray(json.loads(_vec))
-            _result[_vec] = find_distance(
-                vector1=l2_normalize(_nd_arr),
-                vector2=l2_vector_challenger,
+            _tmp_tuple = _nd_arr, find_distance(
+                vector1=vector,
+                vector2=_nd_arr,
                 metric=metric
             )
-        if top_k > len(_result.keys()):
-            top_k = len(_result.keys())
-        return sorted(_result.items(), key=lambda item: item[1])[:top_k]
+            _result.append(_tmp_tuple)
+        if top_k > len(_result):
+            top_k = len(_result)
+        return sorted(_result, key=lambda item: item[1])[:top_k]
 
     # 锁住 vector，此处 vector 作为唯一索引用于标识 document
     @lock_on(vector_modify_lock)
     @lock_on(document_modify_lock)
+    # todo 修改返回值类型为numpy.ndarray，改为 documents
     async def find_document_by_vector(
             self,
             vector: numpy.ndarray,
-            metric: str,
+            metric: Metric,
             top_k: int,
             cached: bool = False
     ) -> list[dict[str, any]]:
@@ -379,18 +380,19 @@ class Dipamkara:
             top_k=top_k
         )
         _result_set: list = EMPTY_LIST()
-        for _vec_str, distance in knn_vectors:
-            _result_set.append(self.__find_doc_by_vector(vector=_vec_str, cached=cached))
+        for _vec, distance in knn_vectors:
+            _result_set.append(self.__find_doc_by_vector(vector=_vec, cached=cached))
         return _result_set
 
     # 锁住 vector，此处 vector 作为唯一索引用于标识 document
     @lock_on(vector_modify_lock)
     @lock_on(document_modify_lock)
+    # todo 修改返回值类型为numpy.ndarray，改为 documents
     async def find_document_by_vector_indexed(
             self,
             query: str,
             vector: numpy.ndarray,
-            metric: str,
+            metric: Metric,
             top_k: int,
             cached: bool = False
     ) -> list[dict[str, any]]:
