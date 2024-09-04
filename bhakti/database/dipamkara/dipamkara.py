@@ -366,8 +366,7 @@ class Dipamkara:
     # 锁住 vector，此处 vector 作为唯一索引用于标识 document
     @lock_on(vector_modify_lock)
     @lock_on(document_modify_lock)
-    # todo 修改返回值类型为numpy.ndarray，改为 documents
-    async def find_document_by_vector(
+    async def find_documents_by_vector(
             self,
             vector: numpy.ndarray,
             metric: Metric,
@@ -387,8 +386,7 @@ class Dipamkara:
     # 锁住 vector，此处 vector 作为唯一索引用于标识 document
     @lock_on(vector_modify_lock)
     @lock_on(document_modify_lock)
-    # todo 修改返回值类型为numpy.ndarray，改为 documents
-    async def find_document_by_vector_indexed(
+    async def find_documents_by_vector_indexed(
             self,
             query: str,
             vector: numpy.ndarray,
@@ -403,12 +401,12 @@ class Dipamkara:
             top_k=top_k
         )
         _result_set: list = EMPTY_LIST()
-        for _vec_str, distance in knn_vectors:
-            _result_set.append(self.__find_doc_by_vector(vector=_vec_str, cached=cached))
+        for _vec, distance in knn_vectors:
+            _result_set.append(self.__find_doc_by_vector(vector=_vec, cached=cached))
         return _result_set
 
     # 该方法的四处调用都为 vector 和 document 上了锁
-    def __find_doc_by_vector(self, vector: str | numpy.ndarray, cached: bool) -> dict[str, any]:
+    def __find_doc_by_vector(self, vector: numpy.ndarray | str, cached: bool) -> dict[str, any]:
         if isinstance(vector, str):
             pass
         elif isinstance(vector, numpy.ndarray):
@@ -443,7 +441,7 @@ class Dipamkara:
                 self.__inverted_index[index][_vec_str] = _doc_dict[index]
 
     # 该方法只有一处调用，故不在这上锁
-    async def __save_doc_by_vector(self, vector: str | numpy.ndarray, doc: dict):
+    async def __save_doc_by_vector(self, vector: numpy.ndarray | str, doc: dict):
         if isinstance(vector, numpy.ndarray):
             vector = json.dumps(vector.tolist(), ensure_ascii=True)
         elif isinstance(vector, str):
