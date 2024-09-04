@@ -27,7 +27,7 @@ from bhakti.database.dipamkara.exception.dipamkara_index_existence_error import 
 from bhakti.database.dipamkara.exception.dipamkara_vector_existence_error import DipamkaraVectorExistenceError
 from bhakti.database.dipamkara.decorator.lock_on import lock_on
 
-__VERSION__ = "0.1.0"
+__VERSION__ = "0.1.13"
 __AUTHOR__ = "Vortez Wohl"
 
 
@@ -292,10 +292,10 @@ class Dipamkara:
     @lock_on(document_modify_lock)
     @lock_on(inverted_index_modify_lock)
     async def mod_doc_by_vector(self, vector: numpy.ndarray | str, key: str, value: any):
-        if isinstance(vector, numpy.ndarray):
-            vector = json.dumps(vector.tolist(), ensure_ascii=True)
-        elif isinstance(vector, str):
+        if isinstance(vector, str):
             pass
+        elif isinstance(vector, numpy.ndarray):
+            vector = json.dumps(vector.tolist(), ensure_ascii=True)
         else:
             raise DipamkaraVectorError(f'Value {vector} is not a vector')
         _doc = self.__find_doc_by_vector(vector=vector, cached=False)
@@ -448,10 +448,10 @@ class Dipamkara:
 
     # 该方法只有一处调用，故不在这上锁
     async def __save_doc_by_vector(self, vector: numpy.ndarray | str, doc: dict):
-        if isinstance(vector, numpy.ndarray):
-            vector = json.dumps(vector.tolist(), ensure_ascii=True)
-        elif isinstance(vector, str):
+        if isinstance(vector, str):
             pass
+        elif isinstance(vector, numpy.ndarray):
+            vector = json.dumps(vector.tolist(), ensure_ascii=True)
         else:
             raise DipamkaraVectorError(f'Value {vector} is not a vector')
         if vector not in self.__vector.keys():
