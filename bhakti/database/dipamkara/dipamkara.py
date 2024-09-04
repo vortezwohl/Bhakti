@@ -301,15 +301,15 @@ class Dipamkara:
         _doc = self.__find_doc_by_vector(vector=vector, cached=False)
         if key not in _doc.keys():
             raise KeyError(f'Key "{key}" not exists')
-        await self.__save_doc_by_vector(vector=vector, doc=_doc)
         _doc[key] = value
+        await self.__save_doc_by_vector(vector=vector, doc=_doc)
         # update index
         if key not in self.__inverted_index.keys():
             return
         _object_dict = self.__inverted_index[key]
-        for _vec in _object_dict:
-            if _vec == vector:
-                _object_dict[_vec] = value
+        for _vec_str in _object_dict.keys():
+            if _vec_str == vector:
+                _object_dict[_vec_str] = value
         await self.save()
 
     # 这里为 inverted_index 上锁，因为该方法的返回值会用做索引用于删除 document
@@ -459,6 +459,6 @@ class Dipamkara:
         _doc_id = self.__vector[vector]
         _doc_path = os.path.join(self.__archive_zen, str(_doc_id))
         _doc_text = json.dumps(doc, ensure_ascii=False)
-        with open(_doc_path, mode='w+', encoding=UTF_8) as _doc_file:
+        with open(_doc_path, mode='w', encoding=UTF_8) as _doc_file:
             # _doc_file.seek(0)
             _doc_file.write(_doc_text)
