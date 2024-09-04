@@ -209,7 +209,7 @@ class Dipamkara:
     # 这里没有给 document 上锁，因为我只需要做删除操作，如果 document 存在则从缓存中删除，
     # 如果不存在，那么由于 auto_increment 是持续递增的， 不会存在相同的 auto_increment，这意味着如果不存在，就是已经被删除了
     @lock_on(vector_modify_lock)
-    async def invalidate_cached_doc_by_vector(self, vector: str | numpy.ndarray) -> bool:
+    async def invalidate_cached_doc_by_vector(self, vector: numpy.ndarray | str) -> bool:
         if isinstance(vector, str):
             pass
         elif isinstance(vector, numpy.ndarray):
@@ -228,7 +228,7 @@ class Dipamkara:
     @lock_on(vector_modify_lock)
     @lock_on(inverted_index_modify_lock)
     @lock_on(document_modify_lock)
-    async def remove_by_vector(self, vector: str | numpy.ndarray, insta_save: bool = True) -> bool:
+    async def remove_by_vector(self, vector: numpy.ndarray | str, insta_save: bool = True) -> bool:
         if isinstance(vector, str):
             pass
         elif isinstance(vector, numpy.ndarray):
@@ -291,7 +291,7 @@ class Dipamkara:
     @lock_on(vector_modify_lock)
     @lock_on(document_modify_lock)
     @lock_on(inverted_index_modify_lock)
-    async def mod_doc_by_vector(self, vector: str | numpy.ndarray, key: str, value: any):
+    async def mod_doc_by_vector(self, vector: numpy.ndarray | str, key: str, value: any):
         if isinstance(vector, numpy.ndarray):
             vector = json.dumps(vector.tolist(), ensure_ascii=True)
         elif isinstance(vector, str):
@@ -380,7 +380,10 @@ class Dipamkara:
         )
         _result_set: list = EMPTY_LIST()
         for _vec, distance in knn_vectors:
-            _result_set.append(self.__find_doc_by_vector(vector=_vec, cached=cached))
+            # 返回深拷贝
+            _result_set.append(
+                dict(self.__find_doc_by_vector(vector=_vec, cached=cached))
+            )
         return _result_set
 
     # 锁住 vector，此处 vector 作为唯一索引用于标识 document
@@ -402,7 +405,10 @@ class Dipamkara:
         )
         _result_set: list = EMPTY_LIST()
         for _vec, distance in knn_vectors:
-            _result_set.append(self.__find_doc_by_vector(vector=_vec, cached=cached))
+            # 返回深拷贝
+            _result_set.append(
+                dict(self.__find_doc_by_vector(vector=_vec, cached=cached))
+            )
         return _result_set
 
     # 该方法的四处调用都为 vector 和 document 上了锁
