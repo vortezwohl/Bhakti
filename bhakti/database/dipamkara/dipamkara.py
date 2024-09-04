@@ -27,7 +27,7 @@ from bhakti.database.dipamkara.exception.dipamkara_index_existence_error import 
 from bhakti.database.dipamkara.exception.dipamkara_vector_existence_error import DipamkaraVectorExistenceError
 from bhakti.database.dipamkara.decorator.lock_on import lock_on
 
-__VERSION__ = "0.3.7"
+__VERSION__ = "0.3.8"
 __AUTHOR__ = "Vortez Wohl"
 
 
@@ -97,36 +97,38 @@ class Dipamkara:
         self.__dimension = dimension
 
         log.info(f'Dipamkara v{__VERSION__}')
-        log.info(f'Initializing...')
 
         # .vec .inv 采用异步快照，.zen 采用同步存储
         if not os.path.exists(archive_path):
             os.mkdir(archive_path)
-        # always cache
-        if not os.path.exists(self.__archive_inv):
-            with open(self.__archive_inv, 'w') as inv_file:
-                inv_file.write(EMPTY_STR())
-        else:
-            log.info('Loading indices...')
-            with open(self.__archive_inv, 'r', encoding=UTF_8) as inv_file:
-                _inv_file_text = inv_file.read()
-            if _inv_file_text != EMPTY_STR():
-                self.__inverted_index = json.loads(_inv_file_text)
+
         # always cache
         if not os.path.exists(self.__archive_vec):
             with open(self.__archive_vec, 'w') as vec_file:
                 vec_file.write(EMPTY_STR())
         else:
-            log.info('Loading vectors...')
+            log.info('Initializing vectors...')
             with open(self.__archive_vec, 'r', encoding=UTF_8) as vec_file:
                 _vec_file_text = vec_file.read()
             if _vec_file_text != EMPTY_STR():
                 self.__vector = json.loads(_vec_file_text)
+
+        # always cache
+        if not os.path.exists(self.__archive_inv):
+            with open(self.__archive_inv, 'w') as inv_file:
+                inv_file.write(EMPTY_STR())
+        else:
+            log.info('Initializing inverted_indices...')
+            with open(self.__archive_inv, 'r', encoding=UTF_8) as inv_file:
+                _inv_file_text = inv_file.read()
+            if _inv_file_text != EMPTY_STR():
+                self.__inverted_index = json.loads(_inv_file_text)
+
         # conditional cache
         if not os.path.exists(self.__archive_zen):
             os.mkdir(self.__archive_zen)
         else:
-            log.info('Loading auto_increment...')
+            log.info('Initializing auto_increment...')
             entries = os.listdir(self.__archive_zen)
             for entry in entries:
                 self.__auto_increment_ptr = max(
@@ -137,7 +139,7 @@ class Dipamkara:
             self.__auto_increment_ptr += 1
             # load documents into memory
             if self.__cached:
-                log.info('Caching data...')
+                log.info('Caching data to memory...')
                 for _id in entries:
                     _path = os.path.join(self.__archive_zen, _id)
                     with open(_path, 'r', encoding=UTF_8) as _doc:
