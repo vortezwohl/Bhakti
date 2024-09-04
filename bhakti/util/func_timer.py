@@ -1,7 +1,7 @@
 import datetime
 
 
-def time_kept(func):
+def time_kept(func: callable):
     def wrapper(*args, **kwargs):
         start = datetime.datetime.now().timestamp()
         func(*args, **kwargs)

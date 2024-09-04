@@ -27,17 +27,54 @@ from bhakti.database.dipamkara.exception.dipamkara_index_existence_error import 
 from bhakti.database.dipamkara.exception.dipamkara_vector_existence_error import DipamkaraVectorExistenceError
 from bhakti.database.dipamkara.decorator.lock_on import lock_on
 
-__VERSION__ = "0.1.13"
+__VERSION__ = "0.3.7"
 __AUTHOR__ = "Vortez Wohl"
 
 
 class Dipamkara:
+    """
+    Dipamkara is a thread-safe database engine for managing documents and vector indexing based on numpy.
+
+    Attributes:
+        dimension (int): The dimension of the vectors.
+        archive_path (str): The path to store documents and indexes.
+        cached (bool, optional): Whether to cache documents, defaults to False.
+
+    Methods:
+        get_vectors(): Returns a dictionary of all vectors.
+        get_auto_increment(): Returns the current value of the current auto-increment.
+        get_cached_docs(): Returns a dictionary of cached documents.
+        get_indices(): Returns a dictionary of all inverted indices.
+        get_archive_dir(): Returns the storage path.
+        is_fully_cached(): Returns whether database are fully cached into memory.
+        save(): Asynchronously saves vectors and indexes to files.
+        auto_increment(): Increments the document ID.
+        create(vector, document, index=[], cached=False): Creates a document with a vector.
+        invalidate_cached_doc_by_vector(vector): Invalidates a cached document by vector.
+        remove_by_vector(vector, insta_save=True): Removes a document by vector.
+        indexed_remove(query): Removes documents by query.
+        create_index(index): Creates an index.
+        remove_index(index): Removes an index.
+        mod_doc_by_vector(vector, key, value): Modifies a document by vector.
+        vector_query(vector, metric, top_k): Performs a vector query.
+        indexed_vector_query(query, vector, metric, top_k): Performs an indexed vector query.
+        find_documents_by_vector(vector, metric, top_k, cached=False): Finds documents by vector.
+        find_documents_by_vector_indexed(query, vector, metric, top_k, cached=False): Finds documents by indexed vector.
+    """
     def __init__(
             self,
             dimension: int,
             archive_path: str,
             cached: bool = False
     ):
+        """
+        Initializes the Dipamkara instance.
+
+        Args:
+            dimension (int): The dimension of the vectors.
+            archive_path (str): The path to store documents and indexes.
+            cached (bool, optional): Whether to cache documents, defaults to False.
+        """
         # global cache option
         self.__cached = cached
         # vectors are stored as string
@@ -109,34 +146,77 @@ class Dipamkara:
                         self.__document[int(_id)] = json.loads(_doc_text)
         log.info('Dipamkara initialized')
 
-    def get_vectors(self):
+    @property
+    def vectors(self):
+        """
+        Retrieves a dictionary of all vectors currently stored in the system.
+
+        Returns:
+            dict: A dictionary where keys are vector representations and values are document IDs.
+        """
         return dict(self.__vector)
 
-    def get_auto_increment(self):
-        return self.__auto_increment_ptr
+    @property
+    def latest_id(self):
+        """
+        Gets the current value of the auto-increment used for document IDs.
 
-    def get_cached_docs(self):
+        Returns:
+            int: The current value of the auto-increment.
+        """
+        return self.__auto_increment_ptr - 1
+
+    @property
+    def cached_docs(self):
+        """
+        Returns a dictionary of documents that are currently cached in memory.
+
+        Returns:
+            dict: A dictionary where keys are document IDs and values are the documents.
+        """
         return dict(self.__document)
 
-    def get_indices(self):
+    @property
+    def inverted_indices(self):
+        """
+        Retrieves a dictionary of all inverted indices currently stored in the system.
+
+        Returns:
+            dict: A dictionary where keys are index and values are vectors and their associated value of index.
+        """
         return dict(self.__inverted_index)
 
-    def get_archive_dir(self):
+    @property
+    def archive_dir(self):
+        """
+        Gets the archive directory path where vectors, inverted indices, and documents are stored.
+
+        Returns:
+            str: The path to the archive directory.
+        """
         return self.__archive_path
 
+    @property
     def is_fully_cached(self):
+        """
+        Checks if the system is configured to fully cache documents in memory.
+
+        Returns:
+            bool: True if documents are fully cached, False otherwise.
+        """
         return self.__cached
 
     async def save(self):
+        """
+        Asynchronously saves the current state of vectors and inverted indices to the archive files.
+
+        This method ensures that all vector and index data is persisted to disk,
+        maintaining the integrity of the data across system restarts.
+        """
         with open(self.__archive_vec, 'w', encoding=UTF_8) as _vec_file:
             _vec_file.write(json.dumps(self.__vector, ensure_ascii=True))
         with open(self.__archive_inv, 'w', encoding=UTF_8) as _inv_file:
             _inv_file.write(json.dumps(self.__inverted_index, ensure_ascii=False))
-
-    # 在线程中，无法使用异步锁上下文
-    @lock_on(auto_increment_lock)
-    async def auto_increment(self) -> None:
-        self.__auto_increment_ptr += 1
 
     # create 后保存索引
     @lock_on(vector_modify_lock)
@@ -146,11 +226,28 @@ class Dipamkara:
             self,
             vector: numpy.ndarray,
             document: dict[str, any],
-            index: list[str] = None,
+            indices: list[str] = None,
             cached: bool = False
     ) -> bool:
-        if index is None:
-            index = EMPTY_LIST()
+        """
+        Creates a new document with a specified vector and optional indices.
+
+        Args:
+            vector (numpy.ndarray): The vector to associate with the document.
+            document (dict[str, any]): The document to store.
+            indices (list[str], optional): A list of indices to create.
+            cached (bool, optional): Whether to cache the document in memory, defaults to False.
+
+        Returns:
+            bool: True if the document was successfully created, False otherwise.
+
+        Raises:
+            DipamkaraVectorError: If the vector dimensions do not match the expected dimension.
+            DipamkaraVectorExistenceError: If the vector already exists.
+            DipamkaraIndexError: If an index key does not exist in the document.
+        """
+        if indices is None:
+            indices = EMPTY_LIST()
         if vector.shape[0] != self.__dimension:
             raise DipamkaraVectorError(f'Vector {vector} is {vector.shape[0]}-dimensional '
                              f'which should be {self.__dimension}-dimensional')
@@ -158,7 +255,7 @@ class Dipamkara:
         # prefilter
         if vector_str in self.__vector.keys():
             raise DipamkaraVectorExistenceError(f'Vector {vector} already exists')
-        for _index in index:
+        for _index in indices:
             if not find_keywords_of_dipamkara_dsl(_index):
                 if _index not in document.keys():
                     raise DipamkaraIndexError(f'Index "{_index}" is not a key of {document.keys()}, '
@@ -182,7 +279,7 @@ class Dipamkara:
                 # indexing
                 self.__vector[vector_str] = self.__auto_increment_ptr
                 # new indices created at this call
-                for _index in index:
+                for _index in indices:
                     # if index not exist, try index all documents other than this one
                     if _index not in self.__inverted_index.keys():
                         # await self.create_index(_index)
@@ -200,7 +297,7 @@ class Dipamkara:
                     self.__document[self.__auto_increment_ptr] = document
                 # respond success
                 write_success = True
-                await self.auto_increment()
+                await self.__auto_increment()
                 await self.save()
         if not write_success:
             os.remove(doc_path)
@@ -210,6 +307,19 @@ class Dipamkara:
     # 如果不存在，那么由于 auto_increment 是持续递增的， 不会存在相同的 auto_increment，这意味着如果不存在，就是已经被删除了
     @lock_on(vector_modify_lock)
     async def invalidate_cached_doc_by_vector(self, vector: numpy.ndarray | str) -> bool:
+        """
+        Invalidates a cached document by a vector.
+
+        Args:
+            vector (numpy.ndarray or str): The vector of the document to invalidate.
+
+        Returns:
+            bool: True if the document was successfully invalidated, False otherwise.
+
+        Raises:
+            DipamkaraVectorError: If the vector is not in the correct format.
+            DipamkaraVectorExistenceError: If the vector does not exist.
+        """
         if isinstance(vector, str):
             pass
         elif isinstance(vector, numpy.ndarray):
@@ -229,6 +339,19 @@ class Dipamkara:
     @lock_on(inverted_index_modify_lock)
     @lock_on(document_modify_lock)
     async def remove_by_vector(self, vector: numpy.ndarray | str, insta_save: bool = True) -> bool:
+        """
+        Removes a document by its vector and conditionally saves the index.
+
+        Args:
+            vector (numpy.ndarray or str): The vector of the document to remove.
+            insta_save (bool, optional): Whether to immediately save after removal, defaults to True.
+
+        Returns:
+            bool: True if the document was successfully removed, False otherwise.
+
+        Raises:
+            DipamkaraVectorError: If the vector is not in the correct format.
+        """
         if isinstance(vector, str):
             pass
         elif isinstance(vector, numpy.ndarray):
@@ -255,6 +378,15 @@ class Dipamkara:
 
     # remove 若干文档后，再保存索引
     async def indexed_remove(self, query: str) -> bool:
+        """
+        Removes documents based on a query and saves afterward.
+
+        Args:
+            query (str): The Dipamkara DSL expression to match documents for removal.
+
+        Returns:
+            bool: True if the documents were successfully removed, False otherwise.
+        """
         vectors = await self.__indexed_query(query)
         for vector in vectors:
             await self.remove_by_vector(vector, insta_save=False)
@@ -267,6 +399,18 @@ class Dipamkara:
     @lock_on(inverted_index_modify_lock)
     @lock_on(document_modify_lock)
     async def create_index(self, index: str) -> dict:
+        """
+        Creates a new index for the documents.
+
+        Args:
+            index (str): The name of the index to create.
+
+        Returns:
+            dict: The created index.
+
+        Raises:
+            DipamkaraIndexExistenceError: If the index already exists.
+        """
         if not find_keywords_of_dipamkara_dsl(index):
             if index in self.__inverted_index.keys():
                 raise DipamkaraIndexExistenceError(f'Index "{index}" exists')
@@ -278,6 +422,18 @@ class Dipamkara:
     # remove index 后保存索引
     @lock_on(inverted_index_modify_lock)
     async def remove_index(self, index: str) -> bool:
+        """
+        Removes an existing index.
+
+        Args:
+            index (str): The name of the index to remove.
+
+        Returns:
+            bool: True if the index was successfully removed, False otherwise.
+
+        Raises:
+            DipamkaraIndexExistenceError: If the index does not exist.
+        """
         if index not in self.__inverted_index.keys():
             raise DipamkaraIndexExistenceError(f'Index "{index}" not exists')
         del self.__inverted_index[index]
@@ -291,7 +447,23 @@ class Dipamkara:
     @lock_on(vector_modify_lock)
     @lock_on(document_modify_lock)
     @lock_on(inverted_index_modify_lock)
-    async def mod_doc_by_vector(self, vector: numpy.ndarray | str, key: str, value: any):
+    async def mod_doc_by_vector(self, vector: numpy.ndarray | str, key: str, value: any) -> bool:
+        """
+        Modifies a document's field based on its vector.
+
+        Args:
+            vector (numpy.ndarray or str): The vector or vector string identifying the document.
+            key (str): The key within the document to modify.
+            value (any): The new value to set for the specified key.
+
+        Returns:
+            bool: True if the document was successfully modified, False otherwise.
+
+        Raises:
+            DipamkaraVectorError: If the provided vector is not valid.
+            DipamkaraVectorExistenceError: If no document is associated with the given vector.
+            KeyError: If the specified key does not exist in the document.
+        """
         if isinstance(vector, str):
             pass
         elif isinstance(vector, numpy.ndarray):
@@ -305,20 +477,13 @@ class Dipamkara:
         await self.__save_doc_by_vector(vector=vector, doc=_doc)
         # update index
         if key not in self.__inverted_index.keys():
-            return
+            return True
         _object_dict = self.__inverted_index[key]
         for _vec_str in _object_dict.keys():
             if _vec_str == vector:
                 _object_dict[_vec_str] = value
         await self.save()
-
-    # 这里为 inverted_index 上锁，因为该方法的返回值会用做索引用于删除 document
-    @lock_on(inverted_index_modify_lock)
-    async def __indexed_query(self, query: str) -> set[str]:
-        return (DIPAMKARA_DSL
-                .update_expr(expr=query)
-                .update_inverted_index(inverted_index=self.__inverted_index)
-                .process_serialized())
+        return True
 
     # 此处不严格上锁
     # return vector_str: distance
@@ -328,6 +493,18 @@ class Dipamkara:
             metric: Metric,
             top_k: int
     ) -> list[tuple[numpy.ndarray, float]]:
+        """
+        Performs a vector query to find the top_k nearest neighbors for a given vector.
+
+        Args:
+            vector (numpy.ndarray): The query vector.
+            metric (Metric): The distance metric to use for comparison. Metrics are defined in `Metric` class.
+            top_k (int): The number of nearest neighbors to return.
+
+        Returns:
+            List[Tuple[numpy.ndarray, float]]: A list of tuples, each containing a nearest neighbor vector
+            and its distance to the query vector.
+        """
         _result: list[tuple[numpy.ndarray, float]] = EMPTY_LIST()
         for _vec in self.__vector.keys():
             _nd_arr = numpy.asarray(json.loads(_vec))
@@ -349,6 +526,19 @@ class Dipamkara:
             metric: Metric,
             top_k: int
     ) -> list[tuple[numpy.ndarray, float]]:
+        """
+        Performs a vector query on documents that match a given DSL query, finding the k nearest neighbors.
+
+        Args:
+            query (str): The query string to filter documents.
+            vector (numpy.ndarray): The query vector.
+            metric (Metric): The distance metric to use for comparison. Metrics are defined in `Metric` class.
+            top_k (int): The number of nearest neighbors to return.
+
+        Returns:
+            List[Tuple[numpy.ndarray, float]]: A list of tuples, each containing a nearest neighbor vector that matches
+            the query and its distance to the query vector.
+        """
         _result: list[tuple[numpy.ndarray, float]] = EMPTY_LIST()
         vectors_challenged = await self.__indexed_query(query)
         for _vec in vectors_challenged:
@@ -373,6 +563,18 @@ class Dipamkara:
             top_k: int,
             cached: bool = False
     ) -> list[dict[str, any]]:
+        """
+        Finds documents that correspond to the top_k nearest vectors to the given vector.
+
+        Args:
+            vector (numpy.ndarray): The query vector.
+            metric (Metric): The distance metric to use for comparison. Metrics are defined in `Metric` class.
+            top_k (int): The number of nearest neighbors to consider.
+            cached (bool, optional): Whether to cache found documents.
+
+        Returns:
+            List[Dict[str, any]]: A list of documents corresponding to the nearest neighbor vectors.
+        """
         knn_vectors = await self.vector_query(
             vector=vector,
             metric=metric,
@@ -397,6 +599,20 @@ class Dipamkara:
             top_k: int,
             cached: bool = False
     ) -> list[dict[str, any]]:
+        """
+        Finds documents that correspond to the top_k nearest vectors to the given vector and match a DSL query.
+
+        Args:
+            query (str): The query string to filter documents.
+            vector (numpy.ndarray): The query vector.
+            metric (Metric): The distance metric to use for comparison. Metrics are defined in `Metric` class.
+            top_k (int): The number of nearest neighbors to consider.
+            cached (bool, optional): Whether to cache found documents.
+
+        Returns:
+            List[Dict[str, any]]: A list of documents corresponding to the nearest neighbor vectors
+            that match the DSL query.
+        """
         knn_vectors = await self.indexed_vector_query(
             query=query,
             vector=vector,
@@ -411,8 +627,49 @@ class Dipamkara:
             )
         return _result_set
 
+    # 在线程中将无法使用异步锁上下文
+    @lock_on(auto_increment_lock)
+    async def __auto_increment(self) -> None:
+        """
+        Increments the auto-increment for document IDs.
+
+        This method is used to ensure that each document has a unique ID when it is created.
+        """
+        self.__auto_increment_ptr += 1
+
+    # 这里为 inverted_index 上锁，因为该方法的返回值会用做索引用于删除 document
+    @lock_on(inverted_index_modify_lock)
+    async def __indexed_query(self, query: str) -> set[str]:
+        """
+        Performs a Dipamkara DSL query to retrieve a set of vectors.
+
+        Args:
+            query (str): The Dipamkara DSL expression to match against the indexed documents.
+
+        Returns:
+            set[str]: A set of vector strings that match the query.
+        """
+        return (DIPAMKARA_DSL
+                .update_expr(expr=query)
+                .update_inverted_index(inverted_index=self.__inverted_index)
+                .process_serialized())
+
     # 该方法的四处调用都为 vector 和 document 上了锁
     def __find_doc_by_vector(self, vector: numpy.ndarray | str, cached: bool) -> dict[str, any]:
+        """
+        Retrieves a document by its vector.
+
+        Args:
+            vector (numpy.ndarray or str): The vector or vector string identifying the document.
+            cached (bool): Whether to cache found documents.
+
+        Returns:
+            dict[str, any]: The document corresponding to the vector.
+
+        Raises:
+            DipamkaraVectorError: If the provided vector is not valid.
+            DipamkaraVectorExistenceError: If the given vector is not exists.
+        """
         if isinstance(vector, str):
             pass
         elif isinstance(vector, numpy.ndarray):
@@ -435,8 +692,23 @@ class Dipamkara:
                     self.__document[_doc_id] = __doc_dict
                 return __doc_dict
 
-    # 该方法的两处调用都为 vector 和 inverted_index 加了锁，所以这里不加，避免死锁
     def __update_index(self, index: str, reset: bool) -> None:
+        """
+        Updates the inverted index for a specific index key.
+
+        This method is responsible for adding all vectors to the inverted index or resetting it if necessary.
+        It is called internally when creating or modifying indexes and should not be used directly.
+
+        Args:
+            index (str): The index key to update or reset.
+            reset (bool): If True, the index is reset by clearing all entries. If False, existing entries are preserved.
+
+        Raises:
+            DipamkaraIndexExistenceError: If the specified index does not exist and reset is False.
+
+        Note:
+            This method assumes that locks on 'vector' and 'inverted_index' are already held to prevent deadlocks.
+        """
         if index not in self.__inverted_index.keys():
             raise DipamkaraIndexExistenceError(f'Index "{index}" not exists')
         if reset:
@@ -446,8 +718,25 @@ class Dipamkara:
             if index in _doc_dict.keys():
                 self.__inverted_index[index][_vec_str] = _doc_dict[index]
 
-    # 该方法只有一处调用，故不在这上锁
     async def __save_doc_by_vector(self, vector: numpy.ndarray | str, doc: dict):
+        """
+        Asynchronously saves a document to the archive directory using its vector as the identifier.
+
+        This method is intended for internal use and handles the persistence of documents.
+        It ensures that documents are stored with their associated vectors in the archive directory.
+
+        Args:
+            vector (numpy.ndarray or str): The vector or vector string that uniquely identifies the document.
+            doc (dict): The document data to save.
+
+        Raises:
+            DipamkaraVectorError: If the vector provided is not in a valid format.
+            DipamkaraVectorExistenceError: If vector doesn't exist in the archive.
+
+        Note:
+            This method does not acquire locks as it is assumed to be called within a context
+            where the necessary locks are already held to prevent data corruption.
+        """
         if isinstance(vector, str):
             pass
         elif isinstance(vector, numpy.ndarray):
