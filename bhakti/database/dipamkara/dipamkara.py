@@ -108,7 +108,7 @@ class Dipamkara:
             with open(self.__archive_vec, 'w') as vec_file:
                 vec_file.write(EMPTY_STR())
         else:
-            log.info('Initializing vectors...')
+            log.debug('Initializing vectors...')
             with open(self.__archive_vec, 'r', encoding=UTF_8) as vec_file:
                 _vec_file_text = vec_file.read()
             if _vec_file_text != EMPTY_STR():
@@ -119,7 +119,7 @@ class Dipamkara:
             with open(self.__archive_inv, 'w') as inv_file:
                 inv_file.write(EMPTY_STR())
         else:
-            log.info('Initializing inverted_indices...')
+            log.debug('Initializing inverted_indices...')
             with open(self.__archive_inv, 'r', encoding=UTF_8) as inv_file:
                 _inv_file_text = inv_file.read()
             if _inv_file_text != EMPTY_STR():
@@ -129,7 +129,7 @@ class Dipamkara:
         if not os.path.exists(self.__archive_zen):
             os.mkdir(self.__archive_zen)
         else:
-            log.info('Initializing auto_increment...')
+            log.debug('Initializing auto_increment...')
             entries = os.listdir(self.__archive_zen)
             for entry in entries:
                 self.__auto_increment_ptr = max(
@@ -140,14 +140,14 @@ class Dipamkara:
             self.__auto_increment_ptr += 1
             # load documents into memory
             if self.__cached:
-                log.info('Caching data to memory...')
+                log.debug('Caching data to memory...')
                 for _id in entries:
                     _path = os.path.join(self.__archive_zen, _id)
                     with open(_path, 'r', encoding=UTF_8) as _doc:
                         _doc_text = _doc.read()
                     if _doc_text != EMPTY_STR():
                         self.__document[int(_id)] = json.loads(_doc_text)
-        log.info('Dipamkara initialized')
+        log.debug('Dipamkara initialized')
 
     @property
     def vectors(self):
