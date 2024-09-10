@@ -4,8 +4,10 @@ from bhakti.const import (
     DEFAULT_EOF,
     EMPTY_LIST,
     DEFAULT_HOST,
-    DEFAULT_PORT
+    DEFAULT_PORT,
+    EMPTY_STR
 )
+from bhakti.const.bhakti_logo import BHAKTI_LOGO
 from bhakti.server.pipeline import PipelineStage, Pipeline
 
 
@@ -23,6 +25,14 @@ class NioServer:
         self.port = port
         self.eof = eof
         self.pipeline = pipeline
+
+    def __str__(self):
+        _host_str = f'Host:{self.host}'
+        _port_str = f'Port:{self.port}'
+        _str = (f'{BHAKTI_LOGO}'
+                f'|{_host_str:^37}|\n'
+                f'|{_port_str:^37}|')
+        return _str
 
     async def channel_handler(
             self,

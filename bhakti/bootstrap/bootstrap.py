@@ -9,7 +9,9 @@ from bhakti.exception.engine_not_support_error import EngineNotSupportError
 from bhakti.handler import (
     StrDecoder,
     StrDataTrim,
-    InboundDataLog
+    InboundDataLog,
+    DipamkaraHandler,
+    ExceptionNotifier
 )
 
 
@@ -34,11 +36,13 @@ async def start_db_server(
     pipeline.append(StrDecoder())
     pipeline.append(StrDataTrim())
     pipeline.append(InboundDataLog())
+    pipeline.append(DipamkaraHandler())
+    pipeline.append(ExceptionNotifier())
     server = NioServer(
         host=host,
         port=port,
         pipeline=pipeline,
         context=_db_engine
     )
-    log.info(f'Bhakti started on port {port}')
+    log.info(f'Bhakti built: {server}')
     await server.run()

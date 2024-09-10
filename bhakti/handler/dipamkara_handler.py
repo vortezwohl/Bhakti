@@ -1,4 +1,6 @@
 import asyncio
+import json
+from json import JSONDecodeError
 
 from bhakti.server.pipeline import PipelineStage
 
@@ -15,7 +17,11 @@ class DipamkaraHandler(PipelineStage):
             io_context: tuple[asyncio.StreamReader, asyncio.StreamWriter] | None,
             extra_context: any
     ) -> tuple[any, any, list[Exception], bool]:
+        try:
+            dipamkara_message = json.loads(data)
 
+        except JSONDecodeError as json_error:
+            errors.append(json_error)
         return data, extra_context, errors, fire
 
 
@@ -33,6 +39,7 @@ class DipamkaraHandler(PipelineStage):
 0010:
 数据库在启动服务器时选择并创建，后续客户端发送指令并执行：
 {
+    'db_engine': 'dipamkara',
     'opt': 'create',
     'cmd': 'create',
     'param': {
@@ -52,6 +59,7 @@ class DipamkaraHandler(PipelineStage):
 }
 
 {
+    'db_engine': 'dipamkara',
     'opt': 'read',
     'cmd': 'vector_query',
     'param': {
