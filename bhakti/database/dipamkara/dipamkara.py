@@ -494,7 +494,7 @@ class Dipamkara:
             vector: numpy.ndarray,
             metric: Metric,
             top_k: int
-    ) -> list[tuple[numpy.ndarray, float]]:
+    ) -> list[tuple[numpy.ndarray, numpy.float64]]:
         """
         Performs a vector query to find the top_k nearest neighbors for a given vector.
 
@@ -507,7 +507,7 @@ class Dipamkara:
             List[Tuple[numpy.ndarray, float]]: A list of tuples, each containing a nearest neighbor vector
             and its distance to the query vector.
         """
-        _result: list[tuple[numpy.ndarray, float]] = EMPTY_LIST()
+        _result: list[tuple[numpy.ndarray, numpy.float64]] = EMPTY_LIST()
         for _vec in self.__vector.keys():
             _nd_arr = numpy.asarray(json.loads(_vec))
             _tmp_tuple = _nd_arr, find_distance(
@@ -527,7 +527,7 @@ class Dipamkara:
             vector: numpy.ndarray,
             metric: Metric,
             top_k: int
-    ) -> list[tuple[numpy.ndarray, float]]:
+    ) -> list[tuple[numpy.ndarray, numpy.float64]]:
         """
         Performs a vector query on documents that match a given DSL query, finding the k nearest neighbors.
 
@@ -541,7 +541,7 @@ class Dipamkara:
             List[Tuple[numpy.ndarray, float]]: A list of tuples, each containing a nearest neighbor vector that matches
             the query and its distance to the query vector.
         """
-        _result: list[tuple[numpy.ndarray, float]] = EMPTY_LIST()
+        _result: list[tuple[numpy.ndarray, numpy.float64]] = EMPTY_LIST()
         vectors_challenged = await self.__indexed_query(query)
         for _vec in vectors_challenged:
             _nd_arr = numpy.asarray(json.loads(_vec))

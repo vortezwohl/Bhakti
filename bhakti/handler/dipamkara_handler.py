@@ -1,11 +1,10 @@
 import asyncio
 
 from bhakti.server.pipeline import PipelineStage
-from bhakti.util.logger import log
 
 
-class InboundDataLog(PipelineStage):
-    def __init__(self, name: str = 'inbound_data_log'):
+class DipamkaraHandler(PipelineStage):
+    def __init__(self, name: str = 'dipamkara_handler'):
         super().__init__(name)
 
     async def do(
@@ -15,9 +14,15 @@ class InboundDataLog(PipelineStage):
             errors: list[Exception],
             context: tuple[asyncio.StreamReader, asyncio.StreamWriter] | None
     ) -> tuple[any, list[Exception], bool]:
-        output = f'Data received: {data}'
-        if isinstance(errors, list):
-            if len(errors) > 0:
-                output += f' : Errors occurred: {errors}'
-        log.debug(output)
+
         return data, errors, fire
+
+
+'''
+{
+    'op': 'c',
+    'param': {
+        
+    }
+}
+'''

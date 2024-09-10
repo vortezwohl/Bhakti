@@ -40,6 +40,8 @@ class Pipeline:
     async def launch(
             self
     ) -> tuple[any, list[Exception]]:
+        if not isinstance(self.queue, list):
+            return self.data, self.errors
         if len(self.queue):
             for stage in self.queue:
                 self.data, self.errors, self.fire = await stage.do(
