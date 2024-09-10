@@ -13,7 +13,8 @@ class StrDataTrim(PipelineStage):
             data: bytes | str,
             fire: bool,
             errors: list[Exception],
-            context: tuple[asyncio.StreamReader, asyncio.StreamWriter] | None
-    ) -> tuple[any, list[Exception], bool]:
-        return data[:-1*(len(DEFAULT_EOF_STR))], errors, fire
+            io_context: tuple[asyncio.StreamReader, asyncio.StreamWriter] | None,
+            extra_context: any
+    ) -> tuple[any, any, list[Exception], bool]:
+        return data[:-1*(len(DEFAULT_EOF_STR))], extra_context, errors, fire
 

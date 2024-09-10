@@ -12,10 +12,11 @@ class DipamkaraHandler(PipelineStage):
             data: bytes | str,
             fire: bool,
             errors: list[Exception],
-            context: tuple[asyncio.StreamReader, asyncio.StreamWriter] | None
-    ) -> tuple[any, list[Exception], bool]:
+            io_context: tuple[asyncio.StreamReader, asyncio.StreamWriter] | None,
+            extra_context: any
+    ) -> tuple[any, any, list[Exception], bool]:
 
-        return data, errors, fire
+        return data, extra_context, errors, fire
 
 
 '''

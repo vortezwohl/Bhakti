@@ -14,8 +14,10 @@ class PipelineStage:
             data: bytes | str,
             fire: bool,
             errors: list[Exception],
-            context: tuple[asyncio.StreamReader, asyncio.StreamWriter] | None
-    ) -> tuple[any, list[Exception], bool]:
+            io_context: tuple[asyncio.StreamReader, asyncio.StreamWriter] | None,
+            extra_context: any
+    ) -> tuple[any, any, list[Exception], bool]:
+        # data, extra_context, errors, fire
         pass
 
 
@@ -23,33 +25,34 @@ class Pipeline:
     def __init__(
             self,
             queue: list[PipelineStage],
-            context: tuple[asyncio.StreamReader, asyncio.StreamWriter] | None,
-            data: any,
-            fire: bool = True,
-            errors: list[Exception] = EMPTY_LIST
+            io_context: tuple[asyncio.StreamReader, asyncio.StreamWriter] | None,
+            extra_context: any,
+            data: any
     ):
         self.queue: list[PipelineStage] = queue
-        self.context: tuple[
+        self.io_context: tuple[
             asyncio.StreamReader,
             asyncio.StreamWriter
-        ] = context
+        ] = io_context
         self.data: any = data
-        self.fire: bool = fire
-        self.errors: list[Exception] = errors
+        self.extra_context: any = extra_context
+        self.fire: bool = True
+        self.errors: list[Exception] = EMPTY_LIST()
 
     async def launch(
             self
-    ) -> tuple[any, list[Exception]]:
+    ) -> tuple[any, any, list[Exception]]:
         if not isinstance(self.queue, list):
-            return self.data, self.errors
+            return self.data, self.extra_context, self.errors
         if len(self.queue):
             for stage in self.queue:
-                self.data, self.errors, self.fire = await stage.do(
+                self.data, self.extra_context, self.errors, self.fire = await stage.do(
                     data=self.data,
                     fire=self.fire,
                     errors=self.errors,
-                    context=self.context
+                    io_context=self.io_context,
+                    extra_context=self.extra_context
                 )
                 if not self.fire:
                     break
-        return self.data, self.errors
+        return self.data, self.extra_context, self.errors

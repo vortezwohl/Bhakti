@@ -13,9 +13,10 @@ class StrEncoder(PipelineStage):
             data: bytes | str,
             fire: bool,
             errors: list[Exception],
-            context: tuple[asyncio.StreamReader, asyncio.StreamWriter] | None
-    ) -> tuple[any, list[Exception], bool]:
+            io_context: tuple[asyncio.StreamReader, asyncio.StreamWriter] | None,
+            extra_context: any
+    ) -> tuple[any, any, list[Exception], bool]:
         if isinstance(data, str):
-            return data.encode(UTF_8), errors, fire
+            return data.encode(UTF_8), extra_context, errors, fire
         else:
-            return data, errors, fire
+            return data, extra_context, errors, fire
