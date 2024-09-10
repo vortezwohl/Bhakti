@@ -22,6 +22,7 @@ from bhakti.database.dipamkara.lock import (
 from bhakti.database.dipamkara.embedding import find_distance, Metric
 from bhakti.util.logger import log
 from bhakti.database.dipamkara.exception.dipamkara_vector_error import DipamkaraVectorError
+from bhakti.database.dipamkara.exception.dipamkara_dimension_error import DipamkaraDimensionError
 from bhakti.database.dipamkara.exception.dipamkara_index_error import DipamkaraIndexError
 from bhakti.database.dipamkara.exception.dipamkara_index_existence_error import DipamkaraIndexExistenceError
 from bhakti.database.dipamkara.exception.dipamkara_vector_existence_error import DipamkaraVectorExistenceError
@@ -244,14 +245,14 @@ class Dipamkara:
             bool: True if the document was successfully created, False otherwise.
 
         Raises:
-            DipamkaraVectorError: If the vector dimensions do not match the expected dimension.
+            DipamkaraDimensionError: If the vector dimensions do not match the expected dimension.
             DipamkaraVectorExistenceError: If the vector already exists.
             DipamkaraIndexError: If an index key does not exist in the document.
         """
         if indices is None:
             indices = EMPTY_LIST()
         if vector.shape[0] != self.__dimension:
-            raise DipamkaraVectorError(f'Vector {vector} is {vector.shape[0]}-dimensional '
+            raise DipamkaraDimensionError(f'Vector {vector} is {vector.shape[0]}-dimensional '
                              f'which should be {self.__dimension}-dimensional')
         vector_str = json.dumps(vector.tolist(), ensure_ascii=True)
         # prefilter
