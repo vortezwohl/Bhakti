@@ -16,7 +16,7 @@ class NioServer:
             host: str = DEFAULT_HOST,
             port: int = DEFAULT_PORT,
             eof: bytes = DEFAULT_EOF,
-            pipeline: list[PipelineStage] = EMPTY_LIST,
+            pipeline: list[PipelineStage] = EMPTY_LIST
     ):
         self.host = host
         self.port = port
