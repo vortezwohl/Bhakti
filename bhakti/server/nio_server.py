@@ -13,11 +13,11 @@ from bhakti.server.pipeline import PipelineStage, Pipeline
 class NioServer:
     def __init__(
             self,
-            context: any,
             host: str = DEFAULT_HOST,
             port: int = DEFAULT_PORT,
             eof: bytes = DEFAULT_EOF,
-            pipeline: list[PipelineStage] = EMPTY_LIST
+            pipeline: list[PipelineStage] = EMPTY_LIST,
+            context: any = None
     ):
         self.context = context
         self.host = host

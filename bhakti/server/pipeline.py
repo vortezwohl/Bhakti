@@ -29,7 +29,8 @@ class Pipeline:
             extra_context: any,
             data: any
     ):
-        self.queue: list[PipelineStage] = queue
+        # deep copy in case pipeline be modded
+        self.queue: list[PipelineStage] = list(queue)
         self.io_context: tuple[
             asyncio.StreamReader,
             asyncio.StreamWriter
