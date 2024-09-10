@@ -2,6 +2,7 @@ import asyncio
 import json
 from json import JSONDecodeError
 
+from bhakti.const import DEFAULT_EOF, UTF_8
 from bhakti.server.pipeline import PipelineStage
 
 
@@ -18,8 +19,9 @@ class DipamkaraHandler(PipelineStage):
             extra_context: any
     ) -> tuple[any, any, list[Exception], bool]:
         try:
-            dipamkara_message = json.loads(data)
-
+            # dipamkara_message = json.loads(data)
+            # todo 实现数据库访问逻辑，并构造响应返回
+            io_context[1].write(b"helloworld"+DEFAULT_EOF)
         except JSONDecodeError as json_error:
             errors.append(json_error)
         return data, extra_context, errors, fire

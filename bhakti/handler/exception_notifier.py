@@ -18,8 +18,10 @@ class ExceptionNotifier(PipelineStage):
             io_context: tuple[asyncio.StreamReader, asyncio.StreamWriter] | None,
             extra_context: any
     ) -> tuple[any, any, list[Exception], bool]:
-        err_log = EMPTY_STR()
-        for err in errors:
-            err_log += f'{str(type(err).__name__)}: "{str(err)}"'
-        log.error(err_log)
+        if isinstance(errors, list):
+            if len(errors) > 0:
+                err_log = EMPTY_STR()
+                for err in errors:
+                    err_log += f'{str(type(err).__name__)}: "{str(err)}"'
+                log.error(err_log)
         return data, extra_context, errors, False
