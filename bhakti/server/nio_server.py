@@ -6,7 +6,6 @@ from bhakti.const import (
     DEFAULT_HOST,
     DEFAULT_PORT
 )
-from bhakti.util.logger import log
 from bhakti.server.pipeline import PipelineStage, Pipeline
 
 
@@ -48,6 +47,5 @@ class NioServer:
             self.host,
             self.port
         )
-        log.info(f'Bhakti started on port {self.port}')
         async with server:
             await server.serve_forever()
