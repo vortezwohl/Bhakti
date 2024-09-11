@@ -1,8 +1,9 @@
+import logging
+
 from bhakti.server import NioServer
 from bhakti.server.pipeline import PipelineStage
 from bhakti.const import DEFAULT_HOST, DEFAULT_PORT
 from bhakti.util.async_run import sync
-from bhakti.util.logger import log
 from bhakti.database.dipamkara.dipamkara import Dipamkara
 from bhakti.database.db_engine import DBEngine
 from bhakti.exception.engine_not_support_error import EngineNotSupportError
@@ -14,6 +15,8 @@ from bhakti.handler import (
     ExceptionNotifier
 )
 
+log = logging.getLogger("bhakti")
+
 
 @sync
 async def start_db_server(
@@ -24,6 +27,10 @@ async def start_db_server(
     host: str = DEFAULT_HOST,
     port: int = DEFAULT_PORT,
 ):
+    log.info(f'Database_server: Bhakti')
+    log.info(f'Database_engine: {db_engine}')
+    log.info(f'Data_path: {db_path}')
+    log.info(f'Dimension: {dimension}')
     if db_engine == DBEngine.DIPAMKARA:
         _db_engine = Dipamkara(
             dimension=dimension,

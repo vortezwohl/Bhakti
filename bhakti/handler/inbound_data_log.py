@@ -1,7 +1,9 @@
 import asyncio
+import logging
 
 from bhakti.server.pipeline import PipelineStage
-from bhakti.util.logger import log
+
+log = logging.getLogger("bhakti")
 
 
 class InboundDataLog(PipelineStage):

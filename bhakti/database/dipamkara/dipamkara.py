@@ -1,3 +1,5 @@
+import logging
+
 import numpy
 import os
 import json
@@ -20,7 +22,6 @@ from bhakti.database.dipamkara.lock import (
     auto_increment_lock
 )
 from bhakti.database.dipamkara.embedding import find_distance, Metric
-from bhakti.util.logger import log
 from bhakti.database.dipamkara.exception.dipamkara_vector_error import DipamkaraVectorError
 from bhakti.database.dipamkara.exception.dipamkara_dimension_error import DipamkaraDimensionError
 from bhakti.database.dipamkara.exception.dipamkara_index_error import DipamkaraIndexError
@@ -30,6 +31,8 @@ from bhakti.database.dipamkara.decorator.lock_on import lock_on
 
 __VERSION__ = "0.3.8"
 __AUTHOR__ = "Vortez Wohl"
+
+log = logging.getLogger("dipamkara")
 
 
 class Dipamkara:

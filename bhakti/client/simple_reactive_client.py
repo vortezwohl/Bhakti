@@ -1,7 +1,9 @@
 import asyncio
+import logging
 
 from bhakti.const import DEFAULT_EOF
-from bhakti.util import log
+
+log = logging.getLogger("bhakti")
 
 
 class SimpleReactiveClient:

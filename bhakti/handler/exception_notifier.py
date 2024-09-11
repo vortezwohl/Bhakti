@@ -1,9 +1,10 @@
 import asyncio
-from inspect import Traceback
+import logging
 
 from bhakti.server.pipeline import PipelineStage
-from bhakti.util.logger import log
 from bhakti.const import EMPTY_STR
+
+log = logging.getLogger("bhakti")
 
 
 class ExceptionNotifier(PipelineStage):
@@ -22,6 +23,6 @@ class ExceptionNotifier(PipelineStage):
             if len(errors) > 0:
                 err_log = EMPTY_STR()
                 for err in errors:
-                    err_log += f'{str(type(err).__name__)}: "{str(err)}"'
+                    err_log += f'\n{str(type(err).__name__)}: {str(err)}'
                 log.error(err_log)
         return data, extra_context, errors, False
