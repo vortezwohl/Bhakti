@@ -1,4 +1,4 @@
 /test_archive
-/test
+#/test
 .venv
 .idea
