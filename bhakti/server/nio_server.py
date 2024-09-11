@@ -1,14 +1,18 @@
 import asyncio
+import logging
 
 from bhakti.const import (
     DEFAULT_EOF,
     EMPTY_LIST,
     DEFAULT_HOST,
-    DEFAULT_PORT,
-    EMPTY_STR
+    DEFAULT_PORT
 )
 from bhakti.const.bhakti_logo import BHAKTI_LOGO
 from bhakti.server.pipeline import PipelineStage, Pipeline
+
+__VERSION__ = "0.2.3"
+__AUTHOR__ = "Vortez Wohl"
+log = logging.getLogger("bhakti")
 
 
 class NioServer:
@@ -25,6 +29,7 @@ class NioServer:
         self.port = port
         self.eof = eof
         self.pipeline = pipeline
+        log.info(f'Bhakti v{__VERSION__}')
 
     def __str__(self):
         _host_str = f'Host:{self.host}'
