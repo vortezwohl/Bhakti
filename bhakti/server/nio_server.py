@@ -35,8 +35,8 @@ class NioServer:
         _host_str = f'Host:{self.host}'
         _port_str = f'Port:{self.port}'
         _str = (f'{BHAKTI_LOGO}'
-                f'|{_host_str:^37}|\n'
-                f'|{_port_str:^37}|')
+                f'|{_host_str:^36}|\n'
+                f'|{_port_str:^36}|')
         return _str
 
     async def channel_handler(

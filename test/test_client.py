@@ -18,6 +18,16 @@ async def test_client():
         }
     }
     '''
+    data_create_index = '''
+        {
+            "db_engine": "dipamkara",
+            "opt": "create",
+            "cmd": "create_index",
+            "param": {
+                "index": "gender"
+            }
+        }
+        '''
     data_save = '''
     {
         "db_engine": "dipamkara",
@@ -25,7 +35,7 @@ async def test_client():
         "cmd": "save"
     }
     '''
-    bytes = await SimpleReactiveClient().send_receive(message=data_save.encode('utf-8'))
+    bytes = await SimpleReactiveClient().send_receive(message=data_create_index.encode('utf-8'))
     str = bytes.decode('utf-8')[:-1*len("__EOF__")]
     print(json.loads(str))
 
