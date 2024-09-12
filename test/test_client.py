@@ -9,9 +9,9 @@ data_create = {
     "opt": "create",
     "cmd": "create",
     "param": {
-        "vector": [1,0,1,0,4],
-        "document": {"age":22, "gender": "female"},
-        "indices": ["age"],
+        "vector": [1,0,1,0,7],
+        "document": {"age":23, "gender": "male"},
+        "indices": ["gender"],
         "cached": 0
     }
 }
@@ -72,7 +72,17 @@ data_mod_doc_by_vector = {
     "param": {
         "vector": [1,0,1,0,4],
         "key": 'age',
-        "value": 21
+        "value": 22
+    }
+}
+data_vector_query = {
+    "db_engine": "dipamkara",
+    "opt": "read",
+    "cmd": "vector_query",
+    "param": {
+        "vector": [1,0,1,0,1],
+        "metric_value": "cosine",
+        "top_k": 3
     }
 }
 
@@ -85,5 +95,5 @@ async def test_client(data: dict):
 
 
 if __name__ == '__main__':
-    print(test_client(data_mod_doc_by_vector))
+    print(test_client(data_vector_query))
     print(test_client(data_insight))

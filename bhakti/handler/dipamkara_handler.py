@@ -4,7 +4,7 @@ import logging
 
 import numpy
 
-from bhakti.const import EMPTY_STR, UTF_8, DEFAULT_EOF
+from bhakti.const import EMPTY_STR, UTF_8, DEFAULT_EOF, EMPTY_LIST
 from bhakti.database.dipamkara.dipamkara import Dipamkara
 from bhakti.database.dipamkara.embedding import Metric
 from bhakti.server.pipeline import PipelineStage
@@ -27,6 +27,7 @@ def parse_metric(metric: str) -> Metric:
     for _metric in Metric:
         if _metric.value == metric:
             return _metric
+    return Metric.DEFAULT_METRIC
 
 
 STATE_EXCEPTION = "Exception"
@@ -34,6 +35,8 @@ STATE_OK = "OK"
 # meta
 DB_ENGINE_FIELD = 'db_engine'
 DB_OPT_FIELD = 'opt'
+# option
+DB_OPT_INSIGHT = 'insight'
 DB_OPT_CREATE = 'create'
 DB_OPT_READ = 'read'
 DB_OPT_UPDATE = 'update'
@@ -42,6 +45,7 @@ DB_OPT_SAVE = 'save'
 
 DB_CMD_FIELD = 'cmd'
 # method
+DB_CMD_INSIGHT = 'insight'
 DB_CMD_CREATE = 'create'
 DB_CMD_CREATE_INDEX = 'create_index'
 DB_CMD_SAVE = 'save'
@@ -86,6 +90,27 @@ class DipamkaraHandler(PipelineStage):
             dipamkara_message = json.loads(data)
             if dipamkara_message.get(DB_ENGINE_FIELD, EMPTY_STR()) == DBEngine.DIPAMKARA.value:
                 if (
+                        dipamkara_message.get(DB_OPT_FIELD, EMPTY_STR()) == DB_OPT_INSIGHT and
+                        dipamkara_message.get(DB_CMD_FIELD, EMPTY_STR()) == DB_CMD_INSIGHT
+                ):
+                    try:
+                        insight = {
+                            "archive_dir": extra_context.archive_dir,
+                            "enable_cache": extra_context.is_fully_cached,
+                            "auto_increment": extra_context.latest_id,
+                            "vectors": extra_context.vectors,
+                            "inverted_indices": extra_context.inverted_indices,
+                            "cached_docs": extra_context.cached_docs
+                        }
+                        io_context[1].write(generate_response(
+                            state=STATE_OK,
+                            message=EMPTY_STR(),
+                            data=insight
+                        ))
+                    except Exception as _error:
+                        io_context[1].write(generate_response(state=STATE_EXCEPTION, message=str(_error), data=None))
+                        errors.append(_error)
+                elif (
                         dipamkara_message.get(DB_OPT_FIELD, EMPTY_STR()) == DB_OPT_CREATE and
                         dipamkara_message.get(DB_CMD_FIELD, EMPTY_STR()) == DB_CMD_CREATE
                 ):
@@ -129,20 +154,24 @@ class DipamkaraHandler(PipelineStage):
                         dipamkara_message.get(DB_OPT_FIELD, EMPTY_STR()) == DB_OPT_SAVE and
                         dipamkara_message.get(DB_CMD_FIELD, EMPTY_STR()) == DB_CMD_SAVE
                 ):
-                    await extra_context.save()
-                    io_context[1].write(generate_response(
-                        state=STATE_OK,
-                        message=EMPTY_STR(),
-                        data=True
-                    ))
-                # todo test invalidate_cached_doc_by_vector
+                    try:
+                        await extra_context.save()
+                        io_context[1].write(generate_response(
+                            state=STATE_OK,
+                            message=EMPTY_STR(),
+                            data=True
+                        ))
+                    except Exception as _error:
+                        io_context[1].write(
+                            generate_response(state=STATE_EXCEPTION, message=str(_error), data=False))
+                        errors.append(_error)
                 elif (
                         dipamkara_message.get(DB_OPT_FIELD, EMPTY_STR()) == DB_OPT_DELETE and
                         dipamkara_message.get(DB_CMD_FIELD, EMPTY_STR()) == DB_CMD_INVALIDATE_CACHED_DOC_BY_VECTOR
                 ):
                     params = dipamkara_message.get(DB_PARAM_FIELD, EMPTY_STR())
                     if params != EMPTY_STR():
-                        vector = params.get(DB_PARAM_VECTOR, EMPTY_STR())
+                        vector = numpy.asarray(params.get(DB_PARAM_VECTOR, EMPTY_STR()))
                         try:
                             io_context[1].write(generate_response(
                                 state=STATE_OK,
@@ -153,14 +182,13 @@ class DipamkaraHandler(PipelineStage):
                             io_context[1].write(
                                 generate_response(state=STATE_EXCEPTION, message=str(_error), data=False))
                             errors.append(_error)
-                # todo remove by vector
                 elif (
                         dipamkara_message.get(DB_OPT_FIELD, EMPTY_STR()) == DB_OPT_DELETE and
                         dipamkara_message.get(DB_CMD_FIELD, EMPTY_STR()) == DB_CMD_REMOVE_BY_VECTOR
                 ):
                     params = dipamkara_message.get(DB_PARAM_FIELD, EMPTY_STR())
                     if params != EMPTY_STR():
-                        vector = params.get(DB_PARAM_VECTOR, EMPTY_STR())
+                        vector = numpy.asarray(params.get(DB_PARAM_VECTOR, EMPTY_STR()))
                         try:
                             io_context[1].write(generate_response(
                                 state=STATE_OK,
@@ -171,7 +199,6 @@ class DipamkaraHandler(PipelineStage):
                             io_context[1].write(
                                 generate_response(state=STATE_EXCEPTION, message=str(_error), data=False))
                             errors.append(_error)
-                # todo test indexed remove
                 elif (
                         dipamkara_message.get(DB_OPT_FIELD, EMPTY_STR()) == DB_OPT_DELETE and
                         dipamkara_message.get(DB_CMD_FIELD, EMPTY_STR()) == DB_CMD_INDEXED_REMOVE
@@ -189,7 +216,6 @@ class DipamkaraHandler(PipelineStage):
                             io_context[1].write(
                                 generate_response(state=STATE_EXCEPTION, message=str(_error), data=False))
                             errors.append(_error)
-                # todo test remove index
                 elif (
                         dipamkara_message.get(DB_OPT_FIELD, EMPTY_STR()) == DB_OPT_DELETE and
                         dipamkara_message.get(DB_CMD_FIELD, EMPTY_STR()) == DB_CMD_REMOVE_INDEX
@@ -207,14 +233,13 @@ class DipamkaraHandler(PipelineStage):
                             io_context[1].write(
                                 generate_response(state=STATE_EXCEPTION, message=str(_error), data=False))
                             errors.append(_error)
-                # todo test mod doc by vector
                 elif (
                         dipamkara_message.get(DB_OPT_FIELD, EMPTY_STR()) == DB_OPT_UPDATE and
                         dipamkara_message.get(DB_CMD_FIELD, EMPTY_STR()) == DB_CMD_MOD_DOC_BY_VECTOR
                 ):
                     params = dipamkara_message.get(DB_PARAM_FIELD, EMPTY_STR())
                     if params != EMPTY_STR():
-                        vector = params.get(DB_PARAM_VECTOR, EMPTY_STR())
+                        vector = numpy.asarray(params.get(DB_PARAM_VECTOR, EMPTY_STR()))
                         key = params.get(DB_PARAM_KEY, EMPTY_STR())
                         value = params.get(DB_PARAM_VALUE, EMPTY_STR())
                         try:
@@ -227,7 +252,6 @@ class DipamkaraHandler(PipelineStage):
                             io_context[1].write(
                                 generate_response(state=STATE_EXCEPTION, message=str(_error), data=False))
                             errors.append(_error)
-                # todo test vector query
                 elif (
                         dipamkara_message.get(DB_OPT_FIELD, EMPTY_STR()) == DB_OPT_READ and
                         dipamkara_message.get(DB_CMD_FIELD, EMPTY_STR()) == DB_CMD_VECTOR_QUERY
@@ -237,15 +261,19 @@ class DipamkaraHandler(PipelineStage):
                         vector = numpy.asarray(params.get(DB_PARAM_VECTOR, EMPTY_STR()))
                         metric = parse_metric(params.get(DB_PARAM_METRIC_VALUE, EMPTY_STR()))
                         top_k = params.get(DB_PARAM_TOP_K, EMPTY_STR())
+                        _result_set_ndarray = await extra_context.vector_query(
+                            vector=vector,
+                            metric=metric,
+                            top_k=top_k
+                        )
+                        _result_set_list = EMPTY_LIST()
+                        for _ndarray, _distance in _result_set_ndarray:
+                            _result_set_list.append((_ndarray.tolist(), _distance))
                         try:
                             io_context[1].write(generate_response(
                                 state=STATE_OK,
                                 message=EMPTY_STR(),
-                                data=await extra_context.vector_query(
-                                    vector=vector,
-                                    metric=metric,
-                                    top_k=top_k
-                                )
+                                data=_result_set_list
                             ))
                         except Exception as _error:
                             io_context[1].write(
