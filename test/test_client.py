@@ -11,7 +11,7 @@ async def test_client():
         "opt": "create",
         "cmd": "create",
         "param": {
-            "vector": "[1,0,1,0,1]",
+            "vector": [1,0,1,0,1],
             "document": {"age":21, "gender": "male"},
             "indices": ["age"],
             "cached": 0
