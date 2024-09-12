@@ -337,6 +337,8 @@ class Dipamkara:
             if _doc_id in self.__document.keys():
                 del self.__document[_doc_id]
                 return True
+            else:
+                return False
         else:
             raise DipamkaraVectorExistenceError(f'Vector {vector} not exists')
 
