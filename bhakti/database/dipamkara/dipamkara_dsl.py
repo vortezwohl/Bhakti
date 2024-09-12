@@ -105,7 +105,7 @@ class DipamkaraDsl:
         elif self.__inverted_index[key] == EMPTY_DICT():
             # del self.__inverted_index[key]
             # raise DipamkaraSyntaxError(message=f"Index \"{key}\" not exist")
-            return EMPTY_DICT()
+            return EMPTY_SET()
         op = tokens[1]  # > < >= <= != ==
         if self.is_number(tokens[2]):
             value = float(tokens[2])
