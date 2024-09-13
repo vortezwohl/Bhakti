@@ -10,5 +10,5 @@ if __name__ == '__main__':
         dimension=5,
         db_path=r"D:\Users\Administrator\Desktop\Project\Python\bhakti\test_archive",
         db_engine=DBEngine.DIPAMKARA,
-        cached=True
+        cached=False
     )
