@@ -570,7 +570,7 @@ class Dipamkara:
             metric: Metric,
             top_k: int,
             cached: bool = False
-    ) -> list[dict[str, any]]:
+    ) -> list[tuple[dict[str, any], numpy.float64]]:
         """
         Finds documents that correspond to the top_k nearest vectors to the given vector.
 
@@ -592,7 +592,7 @@ class Dipamkara:
         for _vec, distance in knn_vectors:
             # 返回深拷贝
             _result_set.append(
-                dict(self.__find_doc_by_vector(vector=_vec, cached=cached))
+                (dict(self.__find_doc_by_vector(vector=_vec, cached=cached)), distance)
             )
         return _result_set
 
@@ -606,7 +606,7 @@ class Dipamkara:
             metric: Metric,
             top_k: int,
             cached: bool = False
-    ) -> list[dict[str, any]]:
+    ) -> list[tuple[dict[str, any], numpy.float64]]:
         """
         Finds documents that correspond to the top_k nearest vectors to the given vector and match a DSL query.
 
@@ -631,7 +631,7 @@ class Dipamkara:
         for _vec, distance in knn_vectors:
             # 返回深拷贝
             _result_set.append(
-                dict(self.__find_doc_by_vector(vector=_vec, cached=cached))
+                (dict(self.__find_doc_by_vector(vector=_vec, cached=cached)), distance)
             )
         return _result_set
 
