@@ -85,6 +85,39 @@ data_vector_query = {
         "top_k": 3
     }
 }
+data_indexed_vector_query = {
+    "db_engine": "dipamkara",
+    "opt": "read",
+    "cmd": "indexed_vector_query",
+    "param": {
+        "query": 'age > 20 && age < 22 || gender == "female"',
+        "vector": [1,0,1,1,0],
+        "metric_value": "chebyshev",
+        "top_k": 3
+    }
+}
+data_find_documents_by_vector = {
+    "db_engine": "dipamkara",
+    "opt": "read",
+    "cmd": "find_documents_by_vector",
+    "param": {
+        # "query": 'age > 20 && age < 22 || gender == "female"',
+        "vector": [1,0,1,0,0],
+        "metric_value": "cosine",
+        "top_k": 3
+    }
+}
+data_find_documents_by_vector_indexed = {
+    "db_engine": "dipamkara",
+    "opt": "read",
+    "cmd": "find_documents_by_vector_indexed",
+    "param": {
+        "query": 'age > 20 && age < 22 || gender == "female"',
+        "vector": [1,0,1,0,0],
+        "metric_value": "chebyshev",
+        "top_k": 3
+    }
+}
 
 
 @time_kept
@@ -95,5 +128,5 @@ async def test_client(data: dict):
 
 
 if __name__ == '__main__':
-    print(test_client(data_vector_query))
+    print(test_client(data_find_documents_by_vector_indexed))
     print(test_client(data_insight))

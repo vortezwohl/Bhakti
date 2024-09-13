@@ -279,7 +279,6 @@ class DipamkaraHandler(PipelineStage):
                             io_context[1].write(
                                 generate_response(state=STATE_EXCEPTION, message=str(_error), data=None))
                             errors.append(_error)
-                # todo test indexed vector query
                 elif (
                         dipamkara_message.get(DB_OPT_FIELD, EMPTY_STR()) == DB_OPT_READ and
                         dipamkara_message.get(DB_CMD_FIELD, EMPTY_STR()) == DB_CMD_INDEXED_VECTOR_QUERY
@@ -290,22 +289,25 @@ class DipamkaraHandler(PipelineStage):
                         vector = numpy.asarray(params.get(DB_PARAM_VECTOR, EMPTY_STR()))
                         metric = parse_metric(params.get(DB_PARAM_METRIC_VALUE, EMPTY_STR()))
                         top_k = params.get(DB_PARAM_TOP_K, EMPTY_STR())
+                        _result_set_ndarray = await extra_context.indexed_vector_query(
+                            query=query,
+                            vector=vector,
+                            metric=metric,
+                            top_k=top_k
+                        )
+                        _result_set_list = EMPTY_LIST()
+                        for _ndarray, _distance in _result_set_ndarray:
+                            _result_set_list.append((_ndarray.tolist(), _distance))
                         try:
                             io_context[1].write(generate_response(
                                 state=STATE_OK,
                                 message=EMPTY_STR(),
-                                data=await extra_context.indexed_vector_query(
-                                    query=query,
-                                    vector=vector,
-                                    metric=metric,
-                                    top_k=top_k
-                                )
+                                data=_result_set_list
                             ))
                         except Exception as _error:
                             io_context[1].write(
                                 generate_response(state=STATE_EXCEPTION, message=str(_error), data=None))
                             errors.append(_error)
-                # todo test find documents by vector
                 elif (
                         dipamkara_message.get(DB_OPT_FIELD, EMPTY_STR()) == DB_OPT_READ and
                         dipamkara_message.get(DB_CMD_FIELD, EMPTY_STR()) == DB_CMD_FIND_DOCUMENTS_BY_VECTOR
