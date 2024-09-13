@@ -28,8 +28,8 @@ def find_euclidean_distance(
 def find_chebyshev_distance(
         source_embedding: numpy.ndarray,
         test_embedding: numpy.ndarray
-):
-    return numpy.max(numpy.abs(source_embedding - test_embedding))
+) -> numpy.float64:
+    return numpy.float64(numpy.max(numpy.abs(source_embedding - test_embedding)))
 
 
 def find_distance(
