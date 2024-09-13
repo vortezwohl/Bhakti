@@ -6,7 +6,7 @@ import numpy
 from bhakti.database.dipamkara.embedding import Metric
 from bhakti.exception.bhakti_remote_exception import BhaktiRemoteException
 from bhakti.client.simple_reactive_client import SimpleReactiveClient
-from bhakti.const import DEFAULT_EOF, EMPTY_LIST, UTF_8, DEFAULT_EOF_STR
+from bhakti.const import DEFAULT_EOF, EMPTY_LIST, UTF_8
 from bhakti.database.db_engine import DBEngine
 
 log = logging.getLogger('bhakti.client')
