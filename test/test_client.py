@@ -131,7 +131,6 @@ async def test_client(data: dict):
     return json.loads(res_bytes.decode('utf-8')[:-1*len("__EOF__")])
 
 
-
 @time_kept
 @sync
 async def new_test_client():
