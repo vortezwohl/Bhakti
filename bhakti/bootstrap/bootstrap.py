@@ -2,7 +2,6 @@ import logging
 
 from bhakti.server import NioServer
 from bhakti.server.pipeline import PipelineStage
-from bhakti.const import DEFAULT_HOST, DEFAULT_PORT
 from bhakti.util.async_run import sync
 from bhakti.database.dipamkara.dipamkara import Dipamkara
 from bhakti.database.db_engine import DBEngine
@@ -13,6 +12,13 @@ from bhakti.handler import (
     InboundDataLog,
     DipamkaraHandler,
     ExceptionNotifier
+)
+from bhakti.const import (
+    DEFAULT_HOST,
+    DEFAULT_PORT,
+    DEFAULT_EOF,
+    DEFAULT_TIMEOUT,
+    DEFAULT_BUFFER_SIZE
 )
 
 log = logging.getLogger("bhakti")
@@ -25,11 +31,17 @@ async def start_bhakti_server(
     db_engine: DBEngine = DBEngine.DEFAULT_ENGINE,
     cached: bool = False,
     host: str = DEFAULT_HOST,
-    port: int = DEFAULT_PORT
+    port: int = DEFAULT_PORT,
+    eof: bytes = DEFAULT_EOF,
+    timeout: float = DEFAULT_TIMEOUT,
+    buffer_size: int = DEFAULT_BUFFER_SIZE
 ):
-    log.info(f'Database_server: Bhakti')
-    log.info(f'Database_engine: {db_engine}')
-    log.info(f'Data_path: {db_path}')
+    log.info(f'Database server: Bhakti')
+    log.debug(f'IO timeout: {timeout} seconds')
+    log.debug(f'Buffer size: {buffer_size} bytes')
+    log.debug(f'EOF: {eof}')
+    log.info(f'Database engine: {db_engine}')
+    log.info(f'Data path: {db_path}')
     log.info(f'Dimension: {dimension}')
     if db_engine == DBEngine.DIPAMKARA:
         _db_engine = Dipamkara(
@@ -48,6 +60,9 @@ async def start_bhakti_server(
     server = NioServer(
         host=host,
         port=port,
+        eof=eof,
+        timeout=timeout,
+        buffer_size=buffer_size,
         pipeline=pipeline,
         context=_db_engine
     )
