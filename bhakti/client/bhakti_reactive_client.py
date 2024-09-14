@@ -4,8 +4,14 @@ import logging
 import numpy
 
 from bhakti.database.dipamkara.embedding import Metric
-from bhakti.exception.bhakti_remote_exception import BhaktiRemoteException
-from bhakti.client.simple_reactive_client import SimpleReactiveClient
+from bhakti.exception.bhakti_remote_error import BhaktiRemoteError
+from bhakti.exception.bhakti_read_timeout_error import BhaktiReadTimeoutError
+from bhakti.exception.bhakti_connection_refused_error import BhaktiConnectionRefusedError
+from bhakti.client.simple_reactive_client import (
+    SimpleReactiveClient,
+    READ_TIMEOUT,
+    CONNECTION_REFUSED
+)
 from bhakti.const import (
     DEFAULT_EOF,
     EMPTY_LIST,
@@ -40,14 +46,16 @@ class BhaktiReactiveClient(SimpleReactiveClient):
         return response.decode(UTF_8)[:-1 * len(self.__eof)]
 
     async def make_request(self, request: dict) -> any:
-        _resp_bytes = await super().send_receive(
+        _resp_bytes_or_resp_code = await super().send_receive(
             message=json.dumps(request, ensure_ascii=False).encode(UTF_8)
         )
-        if _resp_bytes is None:
-            return _resp_bytes
-        _resp = json.loads(self.response_post_process(response=_resp_bytes))
+        if _resp_bytes_or_resp_code == READ_TIMEOUT:
+            raise BhaktiReadTimeoutError(message='Read timeout')
+        elif _resp_bytes_or_resp_code == CONNECTION_REFUSED:
+            raise BhaktiConnectionRefusedError(message='Connection refused')
+        _resp = json.loads(self.response_post_process(response=_resp_bytes_or_resp_code))
         if _resp['state'] == 'Exception':
-            raise BhaktiRemoteException(message=_resp['message'])
+            raise BhaktiRemoteError(message=_resp['message'])
         return _resp['data']
 
     async def insight(self) -> dict | None:

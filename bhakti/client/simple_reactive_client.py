@@ -6,6 +6,9 @@ from bhakti.util.readsuntil import readsuntil
 
 log = logging.getLogger("bhakti.client")
 
+READ_TIMEOUT = 0
+CONNECTION_REFUSED = 1
+
 
 class SimpleReactiveClient:
     def __init__(
@@ -23,7 +26,7 @@ class SimpleReactiveClient:
         self.__buffer_size = buffer_size
 
     # 读取超时或连接被拒绝时返回 None
-    async def send_receive(self, message: bytes) -> bytes | None:
+    async def send_receive(self, message: bytes) -> bytes | int:
         try:
             reader, writer = await asyncio.open_connection(
                 host=self.__server, port=self.__port, limit=self.__buffer_size)
@@ -40,12 +43,10 @@ class SimpleReactiveClient:
                 log.debug(f'Data received: {data}')
                 return data
             except asyncio.TimeoutError:
-                log.error(f'Read timeout')
-                return None
+                return READ_TIMEOUT
             finally:
                 writer.close()
                 await writer.wait_closed()
                 log.debug('Connection closed')
         except ConnectionRefusedError:
-            log.error('Connection refused')
-            return None
+            return CONNECTION_REFUSED
