@@ -22,6 +22,7 @@ class SimpleReactiveClient:
         self.__timeout = timeout
         self.__buffer_size = buffer_size
 
+    # 读取超时则返回 None
     async def send_receive(self, message: bytes) -> bytes | None:
         reader, writer = await asyncio.open_connection(
             host=self.__server, port=self.__port, limit=self.__buffer_size)
@@ -29,20 +30,16 @@ class SimpleReactiveClient:
         try:
             writer.write(message + self.__eof)
             await writer.drain()
-            try:
-                data = await readsuntil(
-                    reader=reader,
-                    buffer_size=self.__buffer_size,
-                    until=self.__eof,
-                    timeout=self.__timeout
-                )
-            except asyncio.TimeoutError:
-                log.error(f'Read timeout')
-                return None
+            data = await readsuntil(
+                reader=reader,
+                buffer_size=self.__buffer_size,
+                until=self.__eof,
+                timeout=self.__timeout
+            )
             log.debug(f'Data received: {data}')
             return data
-        except Exception as e:
-            log.error(f'Exception: {e}')
+        except asyncio.TimeoutError:
+            log.error(f'Read timeout')
             return None
         finally:
             writer.close()
