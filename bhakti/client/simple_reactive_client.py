@@ -22,26 +22,30 @@ class SimpleReactiveClient:
         self.__timeout = timeout
         self.__buffer_size = buffer_size
 
-    # 读取超时则返回 None
+    # 读取超时或连接被拒绝时返回 None
     async def send_receive(self, message: bytes) -> bytes | None:
-        reader, writer = await asyncio.open_connection(
-            host=self.__server, port=self.__port, limit=self.__buffer_size)
-        log.debug(f'Connected to {self.__server}:{self.__port}')
         try:
-            writer.write(message + self.__eof)
-            await writer.drain()
-            data = await readsuntil(
-                reader=reader,
-                buffer_size=self.__buffer_size,
-                until=self.__eof,
-                timeout=self.__timeout
-            )
-            log.debug(f'Data received: {data}')
-            return data
-        except asyncio.TimeoutError:
-            log.error(f'Read timeout')
+            reader, writer = await asyncio.open_connection(
+                host=self.__server, port=self.__port, limit=self.__buffer_size)
+            log.debug(f'Connected to {self.__server}:{self.__port}')
+            try:
+                writer.write(message + self.__eof)
+                await writer.drain()
+                data = await readsuntil(
+                    reader=reader,
+                    buffer_size=self.__buffer_size,
+                    until=self.__eof,
+                    timeout=self.__timeout
+                )
+                log.debug(f'Data received: {data}')
+                return data
+            except asyncio.TimeoutError:
+                log.error(f'Read timeout')
+                return None
+            finally:
+                writer.close()
+                await writer.wait_closed()
+                log.debug('Connection closed')
+        except ConnectionRefusedError:
+            log.error('Connection refused')
             return None
-        finally:
-            writer.close()
-            await writer.wait_closed()
-            log.debug('Connection closed')
