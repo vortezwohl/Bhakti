@@ -32,7 +32,7 @@ setuptools.setup(
     ],
     entry_points={
         'console_scripts': [
-            'bhakti = bhakti.boostrap.boostrap:__main__'
+            'bhakti = bhakti.bootstrap.bootstrap:bhakti_entry_point'
         ]
     },
     include_package_data=False

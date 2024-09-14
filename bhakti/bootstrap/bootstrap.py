@@ -1,6 +1,6 @@
+import argparse
 import json
 import logging
-import sys
 
 from bhakti.server import NioServer
 from bhakti.server.pipeline import PipelineStage
@@ -89,16 +89,21 @@ def start_bhakti_server_shell(**kwargs):
     )
 
 
-if __name__ == '__main__':
-    config_path = int(sys.argv[1]) if len(sys.argv) > 1 \
-        else None
-    if config_path is None:
-        print("Please specify a configuration file\n"
-              "Example: bhakti /path/to/conf")
-        exit(2)
-    with open(config_path, mode='r', encoding=UTF_8) as f:
+def read_config(conf: str):
+    with open(conf, mode='r', encoding=UTF_8) as f:
         content = f.read()
-    config = json.loads(content)
+    return json.loads(content)
+
+
+def bhakti_entry_point():
+    parser = argparse.ArgumentParser(description='Bhakti database server')
+    parser.add_argument('conf', type=str, help='Path to the configuration file')
+    args = parser.parse_args()
+    config = read_config(args.conf)
+    if config['verbose'.upper()]:
+        log.setLevel(logging.DEBUG)
+    else:
+        log.setLevel(logging.INFO)
     start_bhakti_server_shell(
         dimension=config['dimension'.upper()],
         db_path=config['db_path'.upper()],
