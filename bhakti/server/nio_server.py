@@ -5,12 +5,15 @@ from bhakti.const import (
     DEFAULT_EOF,
     EMPTY_LIST,
     DEFAULT_HOST,
-    DEFAULT_PORT
+    DEFAULT_PORT,
+    DEFAULT_TIMEOUT,
+    DEFAULT_BUFFER_SIZE
 )
 from bhakti.const.bhakti_logo import BHAKTI_LOGO
 from bhakti.server.pipeline import PipelineStage, Pipeline
+from bhakti.util.readsuntil import readsuntil
 
-__VERSION__ = "0.2.3"
+__VERSION__ = "0.2.4"
 __AUTHOR__ = "Vortez Wohl"
 log = logging.getLogger("bhakti")
 
@@ -21,6 +24,8 @@ class NioServer:
             host: str = DEFAULT_HOST,
             port: int = DEFAULT_PORT,
             eof: bytes = DEFAULT_EOF,
+            timeout: float = DEFAULT_TIMEOUT,
+            buffer_size: int = DEFAULT_BUFFER_SIZE,
             pipeline: list[PipelineStage] = EMPTY_LIST,
             context: any = None
     ):
@@ -28,6 +33,8 @@ class NioServer:
         self.host = host
         self.port = port
         self.eof = eof
+        self.timeout = timeout
+        self.buffer_size = buffer_size
         self.pipeline = pipeline
         log.info(f'Bhakti v{__VERSION__}')
 
@@ -44,7 +51,12 @@ class NioServer:
             reader: asyncio.StreamReader,
             writer: asyncio.StreamWriter
     ):
-        data = await reader.readuntil(self.eof)
+        data = await readsuntil(
+            reader=reader,
+            buffer_size=self.buffer_size,
+            until=self.eof,
+            timeout=self.timeout
+        )
         res = await Pipeline(
             queue=self.pipeline,
             io_context=(reader, writer),
