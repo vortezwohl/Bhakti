@@ -12,9 +12,8 @@ from bhakti.const import (
 from bhakti.const.bhakti_logo import BHAKTI_LOGO
 from bhakti.server.pipeline import PipelineStage, Pipeline
 from bhakti.util.readsuntil import readsuntil
+from bhakti import __VERSION__
 
-__VERSION__ = "0.2.4"
-__AUTHOR__ = "Vortez Wohl"
 log = logging.getLogger("bhakti")
 
 
