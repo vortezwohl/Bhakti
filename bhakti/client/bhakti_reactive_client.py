@@ -12,6 +12,10 @@ from bhakti.database.db_engine import DBEngine
 log = logging.getLogger('bhakti.client')
 
 
+def parseTupleOfNdarrayFloat64(_list: list):
+    return numpy.asarray(_list[0]), numpy.float64(_list[1])
+
+
 class BhaktiReactiveClient(SimpleReactiveClient):
     def __init__(
             self,
@@ -137,7 +141,7 @@ class BhaktiReactiveClient(SimpleReactiveClient):
             metric: Metric,
             top_k: int
     ) -> list[tuple[numpy.ndarray, numpy.float64]]:
-        return await self.make_request({
+        return list(map(parseTupleOfNdarrayFloat64, await self.make_request({
             "db_engine": self.__db_engine.value,
             "opt": "read",
             "cmd": "vector_query",
@@ -146,7 +150,7 @@ class BhaktiReactiveClient(SimpleReactiveClient):
                 "metric_value": metric.value,
                 "top_k": top_k
             }
-        })
+        })))
 
     async def vector_query_indexed(
             self,
@@ -155,7 +159,7 @@ class BhaktiReactiveClient(SimpleReactiveClient):
             metric: Metric,
             top_k: int
     ) -> list[tuple[numpy.ndarray, numpy.float64]]:
-        return await self.make_request({
+        return list(map(parseTupleOfNdarrayFloat64, await self.make_request({
             "db_engine": self.__db_engine.value,
             "opt": "read",
             "cmd": "indexed_vector_query",
@@ -165,7 +169,7 @@ class BhaktiReactiveClient(SimpleReactiveClient):
                 "metric_value": metric.value,
                 "top_k": top_k
             }
-        })
+        })))
 
     async def find_documents_by_vector(
             self,
@@ -173,7 +177,7 @@ class BhaktiReactiveClient(SimpleReactiveClient):
             metric: Metric,
             top_k: int
     ) -> list[tuple[dict[str, any], numpy.float64]]:
-        return await self.make_request({
+        return list(map(lambda ls: tuple[dict, numpy.float64](ls), await self.make_request({
             "db_engine": self.__db_engine.value,
             "opt": "read",
             "cmd": "find_documents_by_vector",
@@ -182,7 +186,7 @@ class BhaktiReactiveClient(SimpleReactiveClient):
                 "metric_value": metric.value,
                 "top_k": top_k
             }
-        })
+        })))
 
     async def find_documents_by_vector_indexed(
             self,
@@ -191,7 +195,7 @@ class BhaktiReactiveClient(SimpleReactiveClient):
             metric: Metric,
             top_k: int
     ) -> list[tuple[dict[str, any], numpy.float64]]:
-        return await self.make_request({
+        return list(map(lambda ls: tuple[dict, numpy.float64](ls), await self.make_request({
             "db_engine": self.__db_engine.value,
             "opt": "read",
             "cmd": "find_documents_by_vector_indexed",
@@ -201,4 +205,4 @@ class BhaktiReactiveClient(SimpleReactiveClient):
                 "metric_value": metric.value,
                 "top_k": top_k
             }
-        })
+        })))

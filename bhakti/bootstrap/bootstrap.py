@@ -19,13 +19,13 @@ log = logging.getLogger("bhakti")
 
 
 @sync
-async def start_db_server(
+async def start_bhakti_server(
     dimension: int,
     db_path: str,
     db_engine: DBEngine = DBEngine.DEFAULT_ENGINE,
     cached: bool = False,
     host: str = DEFAULT_HOST,
-    port: int = DEFAULT_PORT,
+    port: int = DEFAULT_PORT
 ):
     log.info(f'Database_server: Bhakti')
     log.info(f'Database_engine: {db_engine}')
