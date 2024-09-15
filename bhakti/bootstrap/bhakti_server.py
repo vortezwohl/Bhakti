@@ -26,7 +26,7 @@ from bhakti.const import (
     UTF_8
 )
 
-__VERSION__ = "0.2.8"
+__VERSION__ = "0.2.9"
 __AUTHOR__ = "Vortez Wohl"
 log = logging.getLogger("bhakti")
 
@@ -111,7 +111,8 @@ def start_bhakti_server_shell(**kwargs):
         host=kwargs['host'],
         port=kwargs['port'],
         timeout=kwargs['timeout'],
-        buffer_size=kwargs['buffer_size']
+        buffer_size=kwargs['buffer_size'],
+        verbose=kwargs['verbose']
     ).run()
 
 
@@ -126,12 +127,6 @@ def bhakti_entry_point():
     parser.add_argument('config.yaml', type=str, help='Path to the configuration file (.yaml)')
     args = parser.parse_args()
     config = read_config(args.conf)
-    if config['verbose'.upper()]:
-        log.setLevel(logging.DEBUG)
-        logging.getLogger('dipamkara').setLevel(logging.DEBUG)
-    else:
-        log.setLevel(logging.INFO)
-        logging.getLogger('dipamkara').setLevel(logging.INFO)
     start_bhakti_server_shell(
         dimension=config['dimension'.upper()],
         db_path=config['db_path'.upper()],
@@ -140,5 +135,6 @@ def bhakti_entry_point():
         host=config['host'.upper()],
         port=config['port'.upper()],
         timeout=config['timeout'.upper()],
-        buffer_size=config['buffer_size'.upper()]
+        buffer_size=config['buffer_size'.upper()],
+        verbose=config['verbose'.upper()]
     )

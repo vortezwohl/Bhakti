@@ -8,5 +8,5 @@ if __name__ == '__main__':
         db_path=r"E:\Python\bhakti\test_archive",
         db_engine=DBEngine.DIPAMKARA,
         cached=False,
-        verbose=True
+        verbose=False
     ).run()
