@@ -26,7 +26,7 @@ from bhakti.const import (
     UTF_8
 )
 
-__VERSION__ = "0.2.9"
+__VERSION__ = "0.2.10"
 __AUTHOR__ = "Vortez Wohl"
 log = logging.getLogger("bhakti")
 
@@ -96,7 +96,10 @@ class BhaktiServer:
         )
         end = datetime.datetime.now().timestamp()
         log.info(f'Bhakti built in {((end - start) * 1000):.2f} ms:\n{server}')
-        await server.run()
+        try:
+            await server.run()
+        except KeyboardInterrupt:
+            exit(0)
 
 
 def start_bhakti_server_shell(**kwargs):
@@ -124,9 +127,9 @@ def read_config(conf: str):
 
 def bhakti_entry_point():
     parser = argparse.ArgumentParser(description='Bhakti database server')
-    parser.add_argument('config.yaml', type=str, help='Path to the configuration file (.yaml)')
+    parser.add_argument('config', type=str, help='Path to the configuration file (.yaml)')
     args = parser.parse_args()
-    config = read_config(args.conf)
+    config = read_config(args.config)
     start_bhakti_server_shell(
         dimension=config['dimension'.upper()],
         db_path=config['db_path'.upper()],
