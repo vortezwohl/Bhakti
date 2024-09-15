@@ -65,6 +65,7 @@ DB_PARAM_VECTOR = 'vector'
 DB_PARAM_DOCUMENT = 'document'
 DB_PARAM_INDICES = 'indices'
 DB_PARAM_INDEX = 'index'
+DB_PARAM_DETAILED = 'detailed'
 DB_PARAM_CACHED = 'cached'
 DB_PARAM_QUERY = 'query'
 DB_PARAM_KEY = 'key'
@@ -144,15 +145,22 @@ class DipamkaraHandler(PipelineStage):
                     params = dipamkara_message.get(DB_PARAM_FIELD, EMPTY_STR())
                     if params != EMPTY_STR():
                         index = params.get(DB_PARAM_INDEX, EMPTY_STR())
+                        detailed = params.get(DB_PARAM_DETAILED, EMPTY_STR())
                         try:
+                            _result = await extra_context.create_index(index=index)
+                            if not detailed:
+                                _result = True
                             io_context[1].write(generate_response(
                                 state=STATE_OK,
                                 message=EMPTY_STR(),
-                                data=await extra_context.create_index(index=index),
+                                data=_result,
                                 eof=eof
                             ))
                         except Exception as _error:
-                            io_context[1].write(generate_response(state=STATE_EXCEPTION, message=str(_error), data=None, eof=eof))
+                            if not detailed:
+                                io_context[1].write(generate_response(state=STATE_EXCEPTION, message=str(_error), data=False, eof=eof))
+                            else:
+                                io_context[1].write(generate_response(state=STATE_EXCEPTION, message=str(_error), data=None, eof=eof))
                             errors.append(_error)
                 elif (
                         dipamkara_message.get(DB_OPT_FIELD, EMPTY_STR()) == DB_OPT_SAVE and

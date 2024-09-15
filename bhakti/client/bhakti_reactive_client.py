@@ -85,13 +85,14 @@ class BhaktiReactiveClient(SimpleReactiveClient):
             }
         })
 
-    async def create_index(self, index: str) -> dict | None:
+    async def create_index(self, index: str, detailed: bool = False) -> dict | None:
         return await self._make_request({
             "db_engine": self.__db_engine.value,
             "opt": "create",
             "cmd": "create_index",
             "param": {
-                "index": index
+                "index": index,
+                "detailed": detailed
             }
         })
 
