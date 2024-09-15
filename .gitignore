@@ -2,3 +2,6 @@
 #/test
 .venv
 .idea
+/bhakti.egg-info
+/dist
+/bhakti-0.2.10
