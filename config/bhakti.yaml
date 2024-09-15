@@ -1,0 +1,9 @@
+DIMENSION: 5
+DB_PATH: path/to/db
+DB_ENGINE: dipamkara
+CACHED: false
+HOST: 127.0.0.1
+PORT: 23860
+TIMEOUT: 16.0
+BUFFER_SIZE: 128
+VERBOSE: true
