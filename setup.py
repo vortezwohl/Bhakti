@@ -8,7 +8,7 @@ with open("LICENSE", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="bhakti",
-    version='0.2.4',
+    version='0.2.6',
     author="vortezwohl",
     author_email="vortez.wohl@gmail.com",
     description="An easy-to-use vector database.",
@@ -28,7 +28,9 @@ setuptools.setup(
     packages=setuptools.find_packages(where="."),
     python_requires=">=3.6",
     install_requires=[
-        'numpy>=1.26.4'
+        'numpy>=1.26.4',
+        'argparse>=1.4.0',
+        'PyYAML>=6.0.2'
     ],
     entry_points={
         'console_scripts': [
