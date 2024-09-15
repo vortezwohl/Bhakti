@@ -96,10 +96,7 @@ class BhaktiServer:
         )
         end = datetime.datetime.now().timestamp()
         log.info(f'Bhakti built in {((end - start) * 1000):.2f} ms:\n{server}')
-        try:
-            await server.run()
-        except KeyboardInterrupt:
-            exit(0)
+        await server.run()
 
 
 def start_bhakti_server_shell(**kwargs):
