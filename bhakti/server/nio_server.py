@@ -57,6 +57,7 @@ class NioServer:
         res = await Pipeline(
             queue=self.pipeline,
             io_context=(reader, writer),
+            eof=self.eof,
             extra_context=self.context,
             data=data
         ).launch()

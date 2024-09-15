@@ -16,6 +16,7 @@ class InboundDataLog(PipelineStage):
             fire: bool,
             errors: list[Exception],
             io_context: tuple[asyncio.StreamReader, asyncio.StreamWriter] | None,
+            eof: bytes,
             extra_context: any
     ) -> tuple[any, any, list[Exception], bool]:
         output = f'Data received: {data}'
