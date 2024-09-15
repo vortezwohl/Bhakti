@@ -110,7 +110,7 @@ def start_bhakti_server_shell(**kwargs):
         cached=kwargs['cached'],
         host=kwargs['host'],
         port=kwargs['port'],
-        eof=kwargs['eof'],
+        eof=kwargs['eof'].encode(UTF_8),
         timeout=kwargs['timeout'],
         buffer_size=kwargs['buffer_size'],
         verbose=kwargs['verbose']
