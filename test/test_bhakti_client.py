@@ -1,15 +1,13 @@
 import numpy as np
 
-from bhakti.client import BhaktiReactiveClient
-from bhakti.util.async_run import sync
-from bhakti.util.func_timer import time_kept
-from bhakti.util.async_repeat import async_repeat, await_repeat
+from bhakti import BhaktiClient
+from bhakti.util import sync, time_kept, async_repeat, await_repeat
 from bhakti.database import Metric
 
 
 @async_repeat(1)
 async def operate():
-    client = BhaktiReactiveClient(timeout=999999, buffer_size=100000)
+    client = BhaktiClient()
     results = list()
     query_vector = np.random.randn(4096)
     # results.append(query_vector)

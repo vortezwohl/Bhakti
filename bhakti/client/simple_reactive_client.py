@@ -1,7 +1,7 @@
 import asyncio
 import logging
 
-from bhakti.const import DEFAULT_EOF, DEFAULT_TIMEOUT, DEFAULT_BUFFER_SIZE
+from bhakti.const import DEFAULT_EOF, DEFAULT_TIMEOUT, DEFAULT_BUFFER_SIZE, DEFAULT_PORT
 from bhakti.util.readsuntil import readsuntil
 
 log = logging.getLogger("bhakti.client")
@@ -14,7 +14,7 @@ class SimpleReactiveClient:
     def __init__(
             self,
             server: str = '127.0.0.1',
-            port: int = 23860,
+            port: int = DEFAULT_PORT,
             eof: bytes = DEFAULT_EOF,
             timeout: float = DEFAULT_TIMEOUT,
             buffer_size: int = DEFAULT_BUFFER_SIZE
