@@ -15,6 +15,7 @@ class PipelineStage:
             fire: bool,
             errors: list[Exception],
             io_context: tuple[asyncio.StreamReader, asyncio.StreamWriter] | None,
+            eof: bytes,
             extra_context: any
     ) -> tuple[any, any, list[Exception], bool]:
         # data, extra_context, errors, fire
@@ -26,6 +27,7 @@ class Pipeline:
             self,
             queue: list[PipelineStage],
             io_context: tuple[asyncio.StreamReader, asyncio.StreamWriter] | None,
+            eof: bytes,
             extra_context: any,
             data: any
     ):
@@ -39,6 +41,7 @@ class Pipeline:
         self.extra_context: any = extra_context
         self.fire: bool = True
         self.errors: list[Exception] = EMPTY_LIST()
+        self.eof: bytes = eof
 
     async def launch(
             self
@@ -52,6 +55,7 @@ class Pipeline:
                     fire=self.fire,
                     errors=self.errors,
                     io_context=self.io_context,
+                    eof=self.eof,
                     extra_context=self.extra_context
                 )
                 if not self.fire:

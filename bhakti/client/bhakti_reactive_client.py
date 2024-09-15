@@ -17,7 +17,8 @@ from bhakti.const import (
     EMPTY_LIST,
     UTF_8,
     DEFAULT_TIMEOUT,
-    DEFAULT_BUFFER_SIZE
+    DEFAULT_BUFFER_SIZE,
+    DEFAULT_PORT
 )
 from bhakti.database.db_engine import DBEngine
 
@@ -32,7 +33,7 @@ class BhaktiReactiveClient(SimpleReactiveClient):
     def __init__(
             self,
             server: str = '127.0.0.1',
-            port: int = 23860,
+            port: int = DEFAULT_PORT,
             eof: bytes = DEFAULT_EOF,
             timeout: float = DEFAULT_TIMEOUT,
             buffer_size: int = DEFAULT_BUFFER_SIZE,
@@ -42,10 +43,10 @@ class BhaktiReactiveClient(SimpleReactiveClient):
         self.__db_engine: DBEngine = db_engine
         self.__eof = eof
 
-    def response_post_process(self, response: bytes) -> str:
+    def _response_post_process(self, response: bytes) -> str:
         return response.decode(UTF_8)[:-1 * len(self.__eof)]
 
-    async def make_request(self, request: dict) -> any:
+    async def _make_request(self, request: dict) -> any:
         _resp_bytes_or_resp_code = await super().send_receive(
             message=json.dumps(request, ensure_ascii=False).encode(UTF_8)
         )
@@ -53,13 +54,13 @@ class BhaktiReactiveClient(SimpleReactiveClient):
             raise BhaktiReadTimeoutError(message='Read timeout')
         elif _resp_bytes_or_resp_code == CONNECTION_REFUSED:
             raise BhaktiConnectionRefusedError(message='Connection refused')
-        _resp = json.loads(self.response_post_process(response=_resp_bytes_or_resp_code))
+        _resp = json.loads(self._response_post_process(response=_resp_bytes_or_resp_code))
         if _resp['state'] == 'Exception':
             raise BhaktiRemoteError(message=_resp['message'])
         return _resp['data']
 
     async def insight(self) -> dict | None:
-        return await self.make_request({
+        return await self._make_request({
             "db_engine": self.__db_engine.value,
             "opt": "insight",
             "cmd": "insight"
@@ -72,7 +73,7 @@ class BhaktiReactiveClient(SimpleReactiveClient):
             indices: list[str] = EMPTY_LIST(),
             cached: bool = False
     ) -> bool | None:
-        return await self.make_request({
+        return await self._make_request({
             "db_engine": self.__db_engine.value,
             "opt": "create",
             "cmd": "create",
@@ -84,25 +85,26 @@ class BhaktiReactiveClient(SimpleReactiveClient):
             }
         })
 
-    async def create_index(self, index: str) -> dict | None:
-        return await self.make_request({
+    async def create_index(self, index: str, detailed: bool = False) -> dict | None:
+        return await self._make_request({
             "db_engine": self.__db_engine.value,
             "opt": "create",
             "cmd": "create_index",
             "param": {
-                "index": index
+                "index": index,
+                "detailed": detailed
             }
         })
 
     async def save(self) -> bool | None:
-        return await self.make_request({
+        return await self._make_request({
             "db_engine": self.__db_engine.value,
             "opt": "save",
             "cmd": "save"
         })
 
     async def invalidate_cached_document_by_vector(self, vector: numpy.ndarray) -> bool | None:
-        return await self.make_request({
+        return await self._make_request({
             "db_engine": self.__db_engine.value,
             "opt": "delete",
             "cmd": "invalidate_cached_doc_by_vector",
@@ -112,7 +114,7 @@ class BhaktiReactiveClient(SimpleReactiveClient):
         })
 
     async def remove_by_vector(self, vector: numpy.ndarray) -> bool | None:
-        return await self.make_request({
+        return await self._make_request({
             "db_engine": self.__db_engine.value,
             "opt": "delete",
             "cmd": "remove_by_vector",
@@ -122,7 +124,7 @@ class BhaktiReactiveClient(SimpleReactiveClient):
         })
 
     async def indexed_remove(self, query: str) -> bool | None:
-        return await self.make_request({
+        return await self._make_request({
             "db_engine": self.__db_engine.value,
             "opt": "delete",
             "cmd": "indexed_remove",
@@ -132,7 +134,7 @@ class BhaktiReactiveClient(SimpleReactiveClient):
         })
 
     async def remove_index(self, index: str) -> bool | None:
-        return await self.make_request({
+        return await self._make_request({
             "db_engine": self.__db_engine.value,
             "opt": "delete",
             "cmd": "remove_index",
@@ -142,7 +144,7 @@ class BhaktiReactiveClient(SimpleReactiveClient):
         })
 
     async def modify_document_by_vector(self, vector: numpy.ndarray, key: str, value: any) -> bool | None:
-        return await self.make_request({
+        return await self._make_request({
             "db_engine": self.__db_engine.value,
             "opt": "update",
             "cmd": "mod_doc_by_vector",
@@ -159,7 +161,7 @@ class BhaktiReactiveClient(SimpleReactiveClient):
             metric: Metric,
             top_k: int
     ) -> list[tuple[numpy.ndarray, numpy.float64]] | None:
-        response = await self.make_request({
+        response = await self._make_request({
             "db_engine": self.__db_engine.value,
             "opt": "read",
             "cmd": "vector_query",
@@ -180,7 +182,7 @@ class BhaktiReactiveClient(SimpleReactiveClient):
             metric: Metric,
             top_k: int
     ) -> list[tuple[numpy.ndarray, numpy.float64]] | None:
-        response = await self.make_request({
+        response = await self._make_request({
             "db_engine": self.__db_engine.value,
             "opt": "read",
             "cmd": "indexed_vector_query",
@@ -201,7 +203,7 @@ class BhaktiReactiveClient(SimpleReactiveClient):
             metric: Metric,
             top_k: int
     ) -> list[tuple[dict[str, any], numpy.float64]] | None:
-        response = await self.make_request({
+        response = await self._make_request({
             "db_engine": self.__db_engine.value,
             "opt": "read",
             "cmd": "find_documents_by_vector",
@@ -222,7 +224,7 @@ class BhaktiReactiveClient(SimpleReactiveClient):
             metric: Metric,
             top_k: int
     ) -> list[tuple[dict[str, any], numpy.float64]] | None:
-        response = await self.make_request({
+        response = await self._make_request({
             "db_engine": self.__db_engine.value,
             "opt": "read",
             "cmd": "find_documents_by_vector_indexed",

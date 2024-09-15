@@ -12,7 +12,6 @@ from bhakti.const import (
 from bhakti.const.bhakti_logo import BHAKTI_LOGO
 from bhakti.server.pipeline import PipelineStage, Pipeline
 from bhakti.util.readsuntil import readsuntil
-from bhakti import __VERSION__
 
 log = logging.getLogger("bhakti")
 
@@ -35,7 +34,6 @@ class NioServer:
         self.timeout = timeout
         self.buffer_size = buffer_size
         self.pipeline = pipeline
-        log.info(f'Bhakti v{__VERSION__}')
 
     def __str__(self):
         _host_str = f'Host:{self.host}'
@@ -59,6 +57,7 @@ class NioServer:
         res = await Pipeline(
             queue=self.pipeline,
             io_context=(reader, writer),
+            eof=self.eof,
             extra_context=self.context,
             data=data
         ).launch()

@@ -1,1 +1,1 @@
-from .bhakti_reactive_client import BhaktiReactiveClient
+from .bhakti_client import BhaktiClient

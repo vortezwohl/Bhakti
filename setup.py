@@ -8,7 +8,7 @@ with open("LICENSE", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="bhakti",
-    version='0.2.6',
+    version='0.2.8',
     author="vortezwohl",
     author_email="vortez.wohl@gmail.com",
     description="An easy-to-use vector database.",
@@ -34,7 +34,7 @@ setuptools.setup(
     ],
     entry_points={
         'console_scripts': [
-            'bhakti = bhakti.bootstrap.bootstrap:bhakti_entry_point'
+            'bhakti = bhakti.bootstrap.bhakti_server:bhakti_entry_point'
         ]
     },
     include_package_data=False

@@ -17,6 +17,7 @@ class ExceptionNotifier(PipelineStage):
             fire: bool,
             errors: list[Exception],
             io_context: tuple[asyncio.StreamReader, asyncio.StreamWriter] | None,
+            eof: bytes,
             extra_context: any
     ) -> tuple[any, any, list[Exception], bool]:
         if isinstance(errors, list):

@@ -4,7 +4,7 @@ import logging
 
 import numpy
 
-from bhakti.const import EMPTY_STR, UTF_8, DEFAULT_EOF, EMPTY_LIST
+from bhakti.const import EMPTY_STR, UTF_8, EMPTY_LIST
 from bhakti.database.dipamkara.dipamkara import Dipamkara
 from bhakti.database.dipamkara.embedding import Metric
 from bhakti.server.pipeline import PipelineStage
@@ -15,12 +15,12 @@ log = logging.getLogger("dipamkara")
 
 # response
 # state in ("Exception", "OK")
-def generate_response(state: str, message: str, data: any) -> bytes:
+def generate_response(state: str, message: str, data: any, eof: bytes) -> bytes:
     return json.dumps({
         'state': state,
         'message': message,
         'data': data
-    }, ensure_ascii=False).encode(UTF_8) + DEFAULT_EOF
+    }, ensure_ascii=False).encode(UTF_8) + eof
 
 
 def parse_metric(metric: str) -> Metric:
@@ -65,6 +65,7 @@ DB_PARAM_VECTOR = 'vector'
 DB_PARAM_DOCUMENT = 'document'
 DB_PARAM_INDICES = 'indices'
 DB_PARAM_INDEX = 'index'
+DB_PARAM_DETAILED = 'detailed'
 DB_PARAM_CACHED = 'cached'
 DB_PARAM_QUERY = 'query'
 DB_PARAM_KEY = 'key'
@@ -84,6 +85,7 @@ class DipamkaraHandler(PipelineStage):
             fire: bool,
             errors: list[Exception],
             io_context: tuple[asyncio.StreamReader, asyncio.StreamWriter] | None,
+            eof: bytes,
             extra_context: Dipamkara
     ) -> tuple[any, any, list[Exception], bool]:
         try:
@@ -105,10 +107,11 @@ class DipamkaraHandler(PipelineStage):
                         io_context[1].write(generate_response(
                             state=STATE_OK,
                             message=EMPTY_STR(),
-                            data=insight
+                            data=insight,
+                            eof=eof
                         ))
                     except Exception as _error:
-                        io_context[1].write(generate_response(state=STATE_EXCEPTION, message=str(_error), data=None))
+                        io_context[1].write(generate_response(state=STATE_EXCEPTION, message=str(_error), data=None, eof=eof))
                         errors.append(_error)
                 elif (
                         dipamkara_message.get(DB_OPT_FIELD, EMPTY_STR()) == DB_OPT_CREATE and
@@ -129,10 +132,11 @@ class DipamkaraHandler(PipelineStage):
                                     document=document,
                                     indices=indices,
                                     cached=cached
-                                )
+                                ),
+                                eof=eof
                             ))
                         except Exception as _error:
-                            io_context[1].write(generate_response(state=STATE_EXCEPTION, message=str(_error), data=False))
+                            io_context[1].write(generate_response(state=STATE_EXCEPTION, message=str(_error), data=False, eof=eof))
                             errors.append(_error)
                 elif (
                         dipamkara_message.get(DB_OPT_FIELD, EMPTY_STR()) == DB_OPT_CREATE and
@@ -141,14 +145,22 @@ class DipamkaraHandler(PipelineStage):
                     params = dipamkara_message.get(DB_PARAM_FIELD, EMPTY_STR())
                     if params != EMPTY_STR():
                         index = params.get(DB_PARAM_INDEX, EMPTY_STR())
+                        detailed = params.get(DB_PARAM_DETAILED, EMPTY_STR())
                         try:
+                            _result = await extra_context.create_index(index=index)
+                            if not detailed:
+                                _result = True
                             io_context[1].write(generate_response(
                                 state=STATE_OK,
                                 message=EMPTY_STR(),
-                                data=await extra_context.create_index(index=index)
+                                data=_result,
+                                eof=eof
                             ))
                         except Exception as _error:
-                            io_context[1].write(generate_response(state=STATE_EXCEPTION, message=str(_error), data=None))
+                            if not detailed:
+                                io_context[1].write(generate_response(state=STATE_EXCEPTION, message=str(_error), data=False, eof=eof))
+                            else:
+                                io_context[1].write(generate_response(state=STATE_EXCEPTION, message=str(_error), data=None, eof=eof))
                             errors.append(_error)
                 elif (
                         dipamkara_message.get(DB_OPT_FIELD, EMPTY_STR()) == DB_OPT_SAVE and
@@ -159,11 +171,12 @@ class DipamkaraHandler(PipelineStage):
                         io_context[1].write(generate_response(
                             state=STATE_OK,
                             message=EMPTY_STR(),
-                            data=True
+                            data=True,
+                            eof=eof
                         ))
                     except Exception as _error:
                         io_context[1].write(
-                            generate_response(state=STATE_EXCEPTION, message=str(_error), data=False))
+                            generate_response(state=STATE_EXCEPTION, message=str(_error), data=False, eof=eof))
                         errors.append(_error)
                 elif (
                         dipamkara_message.get(DB_OPT_FIELD, EMPTY_STR()) == DB_OPT_DELETE and
@@ -176,11 +189,12 @@ class DipamkaraHandler(PipelineStage):
                             io_context[1].write(generate_response(
                                 state=STATE_OK,
                                 message=EMPTY_STR(),
-                                data=await extra_context.invalidate_cached_doc_by_vector(vector=vector)
+                                data=await extra_context.invalidate_cached_doc_by_vector(vector=vector),
+                                eof=eof
                             ))
                         except Exception as _error:
                             io_context[1].write(
-                                generate_response(state=STATE_EXCEPTION, message=str(_error), data=False))
+                                generate_response(state=STATE_EXCEPTION, message=str(_error), data=False, eof=eof))
                             errors.append(_error)
                 elif (
                         dipamkara_message.get(DB_OPT_FIELD, EMPTY_STR()) == DB_OPT_DELETE and
@@ -193,11 +207,12 @@ class DipamkaraHandler(PipelineStage):
                             io_context[1].write(generate_response(
                                 state=STATE_OK,
                                 message=EMPTY_STR(),
-                                data=await extra_context.remove_by_vector(vector=vector, insta_save=True)
+                                data=await extra_context.remove_by_vector(vector=vector, insta_save=True),
+                                eof=eof
                             ))
                         except Exception as _error:
                             io_context[1].write(
-                                generate_response(state=STATE_EXCEPTION, message=str(_error), data=False))
+                                generate_response(state=STATE_EXCEPTION, message=str(_error), data=False, eof=eof))
                             errors.append(_error)
                 elif (
                         dipamkara_message.get(DB_OPT_FIELD, EMPTY_STR()) == DB_OPT_DELETE and
@@ -210,11 +225,12 @@ class DipamkaraHandler(PipelineStage):
                             io_context[1].write(generate_response(
                                 state=STATE_OK,
                                 message=EMPTY_STR(),
-                                data=await extra_context.indexed_remove(query=query)
+                                data=await extra_context.indexed_remove(query=query),
+                                eof=eof
                             ))
                         except Exception as _error:
                             io_context[1].write(
-                                generate_response(state=STATE_EXCEPTION, message=str(_error), data=False))
+                                generate_response(state=STATE_EXCEPTION, message=str(_error), data=False, eof=eof))
                             errors.append(_error)
                 elif (
                         dipamkara_message.get(DB_OPT_FIELD, EMPTY_STR()) == DB_OPT_DELETE and
@@ -227,11 +243,12 @@ class DipamkaraHandler(PipelineStage):
                             io_context[1].write(generate_response(
                                 state=STATE_OK,
                                 message=EMPTY_STR(),
-                                data=await extra_context.remove_index(index=index)
+                                data=await extra_context.remove_index(index=index),
+                                eof=eof
                             ))
                         except Exception as _error:
                             io_context[1].write(
-                                generate_response(state=STATE_EXCEPTION, message=str(_error), data=False))
+                                generate_response(state=STATE_EXCEPTION, message=str(_error), data=False, eof=eof))
                             errors.append(_error)
                 elif (
                         dipamkara_message.get(DB_OPT_FIELD, EMPTY_STR()) == DB_OPT_UPDATE and
@@ -246,11 +263,12 @@ class DipamkaraHandler(PipelineStage):
                             io_context[1].write(generate_response(
                                 state=STATE_OK,
                                 message=EMPTY_STR(),
-                                data=await extra_context.mod_doc_by_vector(vector=vector, key=key, value=value)
+                                data=await extra_context.mod_doc_by_vector(vector=vector, key=key, value=value),
+                                eof=eof
                             ))
                         except Exception as _error:
                             io_context[1].write(
-                                generate_response(state=STATE_EXCEPTION, message=str(_error), data=False))
+                                generate_response(state=STATE_EXCEPTION, message=str(_error), data=False, eof=eof))
                             errors.append(_error)
                 elif (
                         dipamkara_message.get(DB_OPT_FIELD, EMPTY_STR()) == DB_OPT_READ and
@@ -273,11 +291,12 @@ class DipamkaraHandler(PipelineStage):
                             io_context[1].write(generate_response(
                                 state=STATE_OK,
                                 message=EMPTY_STR(),
-                                data=_result_set_list
+                                data=_result_set_list,
+                                eof=eof
                             ))
                         except Exception as _error:
                             io_context[1].write(
-                                generate_response(state=STATE_EXCEPTION, message=str(_error), data=None))
+                                generate_response(state=STATE_EXCEPTION, message=str(_error), data=None, eof=eof))
                             errors.append(_error)
                 elif (
                         dipamkara_message.get(DB_OPT_FIELD, EMPTY_STR()) == DB_OPT_READ and
@@ -302,11 +321,12 @@ class DipamkaraHandler(PipelineStage):
                             io_context[1].write(generate_response(
                                 state=STATE_OK,
                                 message=EMPTY_STR(),
-                                data=_result_set_list
+                                data=_result_set_list,
+                                eof=eof
                             ))
                         except Exception as _error:
                             io_context[1].write(
-                                generate_response(state=STATE_EXCEPTION, message=str(_error), data=None))
+                                generate_response(state=STATE_EXCEPTION, message=str(_error), data=None, eof=eof))
                             errors.append(_error)
                 elif (
                         dipamkara_message.get(DB_OPT_FIELD, EMPTY_STR()) == DB_OPT_READ and
@@ -327,11 +347,12 @@ class DipamkaraHandler(PipelineStage):
                                     metric=metric,
                                     top_k=top_k,
                                     cached=cached
-                                )
+                                ),
+                                eof=eof
                             ))
                         except Exception as _error:
                             io_context[1].write(
-                                generate_response(state=STATE_EXCEPTION, message=str(_error), data=None))
+                                generate_response(state=STATE_EXCEPTION, message=str(_error), data=None, eof=eof))
                             errors.append(_error)
                 elif (
                         dipamkara_message.get(DB_OPT_FIELD, EMPTY_STR()) == DB_OPT_READ and
@@ -354,13 +375,14 @@ class DipamkaraHandler(PipelineStage):
                                     metric=metric,
                                     top_k=top_k,
                                     cached=cached
-                                )
+                                ),
+                                eof=eof
                             ))
                         except Exception as _error:
                             io_context[1].write(
-                                generate_response(state=STATE_EXCEPTION, message=str(_error), data=None))
+                                generate_response(state=STATE_EXCEPTION, message=str(_error), data=None, eof=eof))
                             errors.append(_error)
         except Exception as error:
-            io_context[1].write(generate_response(state=STATE_EXCEPTION, message=str(error), data=None))
+            io_context[1].write(generate_response(state=STATE_EXCEPTION, message=str(error), data=None, eof=eof))
             errors.append(error)
         return data, extra_context, errors, fire

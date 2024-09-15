@@ -1,4 +1,4 @@
 import bhakti.util.logger
-
-__VERSION__ = "0.2.6"
-__AUTHOR__ = "Vortez Wohl"
+from .bootstrap import BhaktiServer
+from .client import BhaktiClient
+from .bootstrap.bhakti_server import __VERSION__, __AUTHOR__
