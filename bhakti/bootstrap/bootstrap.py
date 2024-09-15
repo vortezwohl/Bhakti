@@ -1,6 +1,8 @@
 import argparse
-import json
 import logging
+import datetime
+
+import yaml
 
 from bhakti.server import NioServer
 from bhakti.server.pipeline import PipelineStage
@@ -39,10 +41,10 @@ async def start_bhakti_server(
     timeout: float = DEFAULT_TIMEOUT,
     buffer_size: int = DEFAULT_BUFFER_SIZE
 ):
+    start = datetime.datetime.now().timestamp()
     log.info(f'Database server: Bhakti')
     log.debug(f'IO timeout: {timeout} seconds')
     log.debug(f'Buffer size: {buffer_size} bytes')
-    log.debug(f'EOF: {eof}')
     log.info(f'Database engine: {db_engine}')
     log.info(f'Data path: {db_path}')
     log.info(f'Dimension: {dimension}')
@@ -69,7 +71,8 @@ async def start_bhakti_server(
         pipeline=pipeline,
         context=_db_engine
     )
-    log.info(f'Bhakti built: {server}')
+    end = datetime.datetime.now().timestamp()
+    log.info(f'Bhakti built in {((end - start) * 1000):.2f} ms:\n{server}')
     await server.run()
 
 
@@ -90,20 +93,22 @@ def start_bhakti_server_shell(**kwargs):
 
 
 def read_config(conf: str):
-    with open(conf, mode='r', encoding=UTF_8) as f:
-        content = f.read()
-    return json.loads(content)
+    with open(conf, 'r', encoding=UTF_8) as file:
+        data = yaml.safe_load(file)
+    return data
 
 
 def bhakti_entry_point():
     parser = argparse.ArgumentParser(description='Bhakti database server')
-    parser.add_argument('conf', type=str, help='Path to the configuration file')
+    parser.add_argument('config.yaml', type=str, help='Path to the configuration file (.yaml)')
     args = parser.parse_args()
     config = read_config(args.conf)
     if config['verbose'.upper()]:
         log.setLevel(logging.DEBUG)
+        logging.getLogger('dipamkara').setLevel(logging.DEBUG)
     else:
         log.setLevel(logging.INFO)
+        logging.getLogger('dipamkara').setLevel(logging.INFO)
     start_bhakti_server_shell(
         dimension=config['dimension'.upper()],
         db_path=config['db_path'.upper()],
