@@ -1,6 +1,6 @@
 # Bhakti
 
-Implemented only with [Numpy](https://github.com/numpy/numpy)
+Implemented with [Numpy](https://github.com/numpy/numpy)
 
 Bhakti is
 
