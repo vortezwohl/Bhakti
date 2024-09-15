@@ -1,5 +1,6 @@
 import argparse
 import logging
+import datetime
 
 import yaml
 
@@ -40,6 +41,7 @@ async def start_bhakti_server(
     timeout: float = DEFAULT_TIMEOUT,
     buffer_size: int = DEFAULT_BUFFER_SIZE
 ):
+    start = datetime.datetime.now().timestamp()
     log.info(f'Database server: Bhakti')
     log.debug(f'IO timeout: {timeout} seconds')
     log.debug(f'Buffer size: {buffer_size} bytes')
@@ -69,7 +71,8 @@ async def start_bhakti_server(
         pipeline=pipeline,
         context=_db_engine
     )
-    log.info(f'Bhakti built: {server}')
+    end = datetime.datetime.now().timestamp()
+    log.info(f'Bhakti built in {((end - start) * 1000):.2f} ms:\n{server}')
     await server.run()
 
 
@@ -97,7 +100,7 @@ def read_config(conf: str):
 
 def bhakti_entry_point():
     parser = argparse.ArgumentParser(description='Bhakti database server')
-    parser.add_argument('conf', type=str, help='Path to the configuration file')
+    parser.add_argument('config.yaml', type=str, help='Path to the configuration file (.yaml)')
     args = parser.parse_args()
     config = read_config(args.conf)
     if config['verbose'.upper()]:
