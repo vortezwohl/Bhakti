@@ -1,10 +1,10 @@
 DIMENSION: 1024
 DB_PATH: path/to/db
-DB_ENGINE: dipamkara
-CACHED: false
-HOST: 127.0.0.1
-PORT: 23860
-EOF: <eof>
-TIMEOUT: 4.0
-BUFFER_SIZE: 256
-VERBOSE: true
+DB_ENGINE: dipamkara #optional default to dipamkara
+CACHED: false #optional default to false
+HOST: 0.0.0.0 #optional default to 0.0.0.0
+PORT: 23860 #optional default to 23860
+EOF: <eof> #optional default to <eof>
+TIMEOUT: 4.0 #optional default to 4.0 seconds
+BUFFER_SIZE: 256 #optional default to 256 bytes
+VERBOSE: false #optional default to false

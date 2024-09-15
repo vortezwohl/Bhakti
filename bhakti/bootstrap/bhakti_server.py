@@ -21,12 +21,13 @@ from bhakti.const import (
     DEFAULT_HOST,
     DEFAULT_PORT,
     DEFAULT_EOF,
+    DEFAULT_EOF_STR,
     DEFAULT_TIMEOUT,
     DEFAULT_BUFFER_SIZE,
     UTF_8
 )
 
-__VERSION__ = "0.2.12"
+__VERSION__ = "0.2.13"
 __AUTHOR__ = "Vortez Wohl"
 log = logging.getLogger("bhakti")
 
@@ -100,6 +101,7 @@ class BhaktiServer:
 
 
 def start_bhakti_server_shell(**kwargs):
+    kwargs['eof'] = kwargs['eof'].encode(UTF_8)
     for engine in DBEngine:
         if engine.value == kwargs['db_engine']:
             kwargs['db_engine'] = engine
@@ -110,7 +112,7 @@ def start_bhakti_server_shell(**kwargs):
         cached=kwargs['cached'],
         host=kwargs['host'],
         port=kwargs['port'],
-        eof=kwargs['eof'].encode(UTF_8),
+        eof=kwargs['eof'],
         timeout=kwargs['timeout'],
         buffer_size=kwargs['buffer_size'],
         verbose=kwargs['verbose']
@@ -131,12 +133,12 @@ def bhakti_entry_point():
     start_bhakti_server_shell(
         dimension=config['dimension'.upper()],
         db_path=config['db_path'.upper()],
-        db_engine=config['db_engine'.upper()],
-        cached=config['cached'.upper()],
-        host=config['host'.upper()],
-        port=config['port'.upper()],
-        eof=config['eof'.upper()],
-        timeout=config['timeout'.upper()],
-        buffer_size=config['buffer_size'.upper()],
-        verbose=config['verbose'.upper()]
+        db_engine=config.get('db_engine'.upper(), DBEngine.DEFAULT_ENGINE.value),
+        cached=config.get('cached'.upper(), False),
+        host=config.get('host'.upper(), DEFAULT_HOST),
+        port=config.get('port'.upper(), DEFAULT_PORT),
+        eof=config.get('eof'.upper(), DEFAULT_EOF_STR),
+        timeout=config.get('timeout'.upper(), DEFAULT_TIMEOUT),
+        buffer_size=config.get('buffer_size'.upper(), DEFAULT_BUFFER_SIZE),
+        verbose=config.get('verbose'.upper(), False),
     )
