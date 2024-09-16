@@ -1,10 +1,13 @@
-<h1 align="center">
+<p align="center">
 <img src="https://github.com/vortezwohl/Bhakti/releases/download/icon/Bhakti-logo.png" width="300">
-<img src="https://github.com/vortezwohl/Bhakti/releases/download/icon/Bhakti.png" width="250">
-</h1>
+<img src="https://github.com/vortezwohl/Bhakti/releases/download/icon/Bhakti.png" width="300">
+</p>
+<p align="center">
+<img src="https://github.com/vortezwohl/Dipamkara/releases/download/icon/Dipamkara.png" width="300">
+</p>
 
 <p align="center">
-Implemented with <a href="https://github.com/numpy/numpy">Numpy</a>
+Powered by <a href="https://github.com/vortezwohl/Dipamkara">Dipamkara</a>
 </p>
 
 
