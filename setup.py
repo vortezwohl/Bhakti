@@ -8,7 +8,7 @@ with open("LICENSE", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="bhakti",
-    version='0.2.14',
+    version='0.2.15',
     author="vortezwohl",
     author_email="vortez.wohl@gmail.com",
     description="An easy-to-use vector database.",
