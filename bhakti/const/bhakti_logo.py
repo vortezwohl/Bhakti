@@ -1,3 +1,5 @@
+from colorama import Fore, Style
+
 BHAKTI_LOGO = r'''
                 _oo0oo_ 
                o8888888o 
@@ -17,3 +19,5 @@ BHAKTI_LOGO = r'''
   \  \ ‘_.   \_ __\ /__ _/   .-’ /  / 
   =‘-.____‘.___ \_____/___.-’___.-’= 
 '''
+
+COLORED_BHAKTI_LOGO = f'{Fore.LIGHTYELLOW_EX}{Style.BRIGHT}{BHAKTI_LOGO}{Style.RESET_ALL}'

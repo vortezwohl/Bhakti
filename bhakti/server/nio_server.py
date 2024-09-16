@@ -1,6 +1,8 @@
 import asyncio
 import logging
 
+import colorama
+
 from bhakti.const import (
     DEFAULT_EOF,
     EMPTY_LIST,
@@ -9,7 +11,7 @@ from bhakti.const import (
     DEFAULT_TIMEOUT,
     DEFAULT_BUFFER_SIZE
 )
-from bhakti.const.bhakti_logo import BHAKTI_LOGO
+from bhakti.const.bhakti_logo import COLORED_BHAKTI_LOGO
 from bhakti.server.pipeline import PipelineStage, Pipeline
 from bhakti.util.readsuntil import readsuntil
 
@@ -38,9 +40,11 @@ class NioServer:
     def __str__(self):
         _host_str = f'Host:{self.host}'
         _port_str = f'Port:{self.port}'
-        _str = (f'{BHAKTI_LOGO}'
+        _str = (f'{COLORED_BHAKTI_LOGO}'
+                f'{colorama.Fore.LIGHTYELLOW_EX}'
                 f'|{_host_str:^36}|\n'
-                f'|{_port_str:^36}|')
+                f'|{_port_str:^36}|'
+                f'{colorama.Style.RESET_ALL}')
         return _str
 
     async def channel_handler(
