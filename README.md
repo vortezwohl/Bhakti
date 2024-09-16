@@ -1,49 +1,16 @@
-<h1 align="center">
-Bhakti
-</h1>
+<div style="display: flex;flex-direction: column;align-items: center;">
+<img src="https://github.com/vortezwohl/Bhakti/releases/download/icon/Bhakti-logo.png" width="300">
+</div>
 
-<style>
-  pre {
-    white-space: pre;
-    font-weight: 600;
-    width: auto;
-    height: auto;
-    text-align: left;
-    color: rgb(255, 255, 30);
-  }
-  .container {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-  }
-</style>
+<div style="display: flex;flex-direction: column;align-items: center;">
+<img src="https://github.com/vortezwohl/Bhakti/releases/download/icon/Bhakti.png" width="250">
+</div>
 
 <p align="center">
 Implemented with <a href="https://github.com/numpy/numpy">Numpy</a>
 </p>
 
-<div class='container'>
-<pre>
-                _oo0oo_ 
-               o8888888o 
-               88" . "88 
-               (|     |) 
-               0\  =  /0 
-             ___/‘---’\___ 
-           .' \|       |/ '. 
-          / \\|||  :  |||// \  
-         / _||||-BHAKTI-||||_ \ 
-        |   | \\\  -  /// |   | 
-        | \_|  ''\---/''  |_/ | 
-        \  .-\__  '-'  ___/-. / 
-      ___'. .'  /--.--\  '. .'___ 
-  . ‘<  ‘.___\_<|>_/___.’>’ .     >’ 
- | | :  ‘- \‘.;‘\ _ /’;.’/ - ’ : | | |
-  \  \ ‘_.   \_ __\ /__ _/   .-’ /  / 
-  =‘-.____‘.___ \_____/___.-’___.-’= 
-</pre>
-</div>
+
 
 ## Bhakti is
 
