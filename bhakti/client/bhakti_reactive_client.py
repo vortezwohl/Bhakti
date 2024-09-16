@@ -2,8 +2,8 @@ import json
 import logging
 
 import numpy
+from dipamkara.embedding import Metric
 
-from bhakti.database.dipamkara.embedding import Metric
 from bhakti.exception.bhakti_remote_error import BhaktiRemoteError
 from bhakti.exception.bhakti_read_timeout_error import BhaktiReadTimeoutError
 from bhakti.exception.bhakti_connection_refused_error import BhaktiConnectionRefusedError

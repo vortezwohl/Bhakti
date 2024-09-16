@@ -3,10 +3,10 @@ import json
 import logging
 
 import numpy
+from dipamkara import Dipamkara
+from dipamkara.embedding import Metric
 
 from bhakti.const import EMPTY_STR, UTF_8, EMPTY_LIST
-from bhakti.database.dipamkara.dipamkara import Dipamkara
-from bhakti.database.dipamkara.embedding import Metric
 from bhakti.server.pipeline import PipelineStage
 from bhakti.database.db_engine import DBEngine
 

@@ -3,11 +3,11 @@ import logging
 import datetime
 
 import yaml
+from dipamkara import Dipamkara
 
 from bhakti.server import NioServer
 from bhakti.server.pipeline import PipelineStage
 from bhakti.util.async_run import sync
-from bhakti.database.dipamkara.dipamkara import Dipamkara
 from bhakti.database.db_engine import DBEngine
 from bhakti.exception.engine_not_support_error import EngineNotSupportError
 from bhakti.handler import (

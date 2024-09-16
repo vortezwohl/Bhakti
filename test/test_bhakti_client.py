@@ -7,13 +7,13 @@ from bhakti.database import Metric
 
 @async_repeat(1)
 async def operate():
-    client = BhaktiClient(eof=b'_wzh_', verbose=True)
+    client = BhaktiClient(verbose=True)
     results = list()
-    query_vector = np.random.randn(4096)
+    query_vector = np.random.randn(1024)
     # results.append(query_vector)
-    # results.append(await client.create(vector=query_vector, document={'age': 31, 'gender': 'unknown'}))
-    results.append(await client.create_index(index='age'))
-    results.append(await client.create_index(index='gender', detailed=False))
+    results.append(await client.create(vector=query_vector, document={'age': 31, 'gender': 'unknown'}))
+    # results.append(await client.create_index(index='age'))
+    # results.append(await client.create_index(index='gender', detailed=False))
     # results.append(await client.remove_index(index='age'))
     # results.append(await client.remove_index(index='gender'))
     # results.append(await client.vector_query(vector=query_vector, metric=Metric.DEFAULT_METRIC, top_k=1))
