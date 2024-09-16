@@ -1,8 +1,5 @@
 <p align="center">
 <img src="https://github.com/vortezwohl/Bhakti/releases/download/icon/Bhakti-logo.png" width="300">
-<img src="https://github.com/vortezwohl/Bhakti/releases/download/icon/Bhakti.png" width="300">
-</p>
-<p align="center">
 <img src="https://github.com/vortezwohl/Dipamkara/releases/download/icon/Dipamkara.png" width="300">
 </p>
 
@@ -144,3 +141,7 @@ Powered by <a href="https://github.com/vortezwohl/Dipamkara">Dipamkara</a>
   if __name__ == '__main__':
       asyncio.run(main())
   ```
+
+<p align="center">
+<img src="https://github.com/vortezwohl/Bhakti/releases/download/icon/Bhakti.png" width="400">
+</p>
