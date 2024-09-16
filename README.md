@@ -1,10 +1,7 @@
-<div style="display: flex;flex-direction: column;align-items: center;">
+<h1 align="center">
 <img src="https://github.com/vortezwohl/Bhakti/releases/download/icon/Bhakti-logo.png" width="300">
-</div>
-
-<div style="display: flex;flex-direction: column;align-items: center;">
 <img src="https://github.com/vortezwohl/Bhakti/releases/download/icon/Bhakti.png" width="250">
-</div>
+</h1>
 
 <p align="center">
 Implemented with <a href="https://github.com/numpy/numpy">Numpy</a>
