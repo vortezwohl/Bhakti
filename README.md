@@ -21,9 +21,7 @@ Powered by <a href="https://github.com/vortezwohl/Dipamkara">Dipamkara</a>
 
   5. Reliable
 
-  6. Based only on Numpy
-
-  7. Suitable for small-sized datasets
+  6. Suitable for small-sized datasets
 
 ## Installation
 
