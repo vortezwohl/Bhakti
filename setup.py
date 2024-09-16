@@ -30,7 +30,8 @@ setuptools.setup(
     install_requires=[
         'numpy>=2.1.1',
         'argparse>=1.4.0',
-        'PyYAML>=6.0.2'
+        'PyYAML>=6.0.2',
+        'colorama>=0.4.6'
     ],
     entry_points={
         'console_scripts': [
