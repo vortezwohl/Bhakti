@@ -20,10 +20,11 @@ class ExceptionNotifier(PipelineStage):
             eof: bytes,
             extra_context: any
     ) -> tuple[any, any, list[Exception], bool]:
+        peer = io_context[1].get_extra_info('peername')
         if isinstance(errors, list):
             if len(errors) > 0:
-                err_log = EMPTY_STR()
+                err_log = f'Errors occurred on channel {peer[0]}:{peer[1]}'
                 for err in errors:
-                    err_log += f'\n{str(type(err).__name__)}: {str(err)}'
+                    err_log += f'\n- {str(type(err).__name__)}: {str(err)}'
                 log.error(err_log)
         return data, extra_context, errors, False

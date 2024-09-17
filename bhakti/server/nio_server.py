@@ -52,23 +52,29 @@ class NioServer:
             reader: asyncio.StreamReader,
             writer: asyncio.StreamWriter
     ):
-        data = await readsuntil(
-            reader=reader,
-            buffer_size=self.buffer_size,
-            until=self.eof,
-            timeout=self.timeout
-        )
-        res = await Pipeline(
-            queue=self.pipeline,
-            io_context=(reader, writer),
-            eof=self.eof,
-            extra_context=self.context,
-            data=data
-        ).launch()
-        # extra context
-        self.context = res[1]
-        writer.close()
-        await writer.wait_closed()
+        peer = writer.get_extra_info('peername')
+        log.info(f'Receiving data from {peer[0]}:{peer[1]}')
+        try:
+            data = await readsuntil(
+                reader=reader,
+                buffer_size=self.buffer_size,
+                until=self.eof,
+                timeout=self.timeout
+            )
+            res = await Pipeline(
+                queue=self.pipeline,
+                io_context=(reader, writer),
+                eof=self.eof,
+                extra_context=self.context,
+                data=data
+            ).launch()
+            # extra context
+            self.context = res[1]
+        except TimeoutError:
+            log.warning(f'Read timeout on channel {peer[0]}:{peer[1]}')
+        finally:
+            writer.close()
+            await writer.wait_closed()
 
     async def run(self):
         server = await asyncio.start_server(

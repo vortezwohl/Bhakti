@@ -19,6 +19,7 @@ class InboundDataLog(PipelineStage):
             eof: bytes,
             extra_context: any
     ) -> tuple[any, any, list[Exception], bool]:
-        output = f'Data received: {data}'
-        log.debug(output)
+        peer = io_context[1].get_extra_info('peername')
+        output = f'{len(data)} bytes received from {peer[0]}:{peer[1]}'
+        log.info(output)
         return data, extra_context, errors, fire

@@ -27,7 +27,7 @@ from bhakti.const import (
     UTF_8
 )
 
-__VERSION__ = "0.2.17"
+__VERSION__ = "0.2.18"
 __AUTHOR__ = "Vortez Wohl"
 log = logging.getLogger("bhakti")
 
@@ -81,9 +81,9 @@ class BhaktiServer:
         else:
             raise EngineNotSupportError(f"DBEngine {self._db_engine} not supported")
         pipeline: list[PipelineStage] = list()
+        pipeline.append(InboundDataLog())
         pipeline.append(StrDecoder())
         pipeline.append(StrDataTrim())
-        pipeline.append(InboundDataLog())
         pipeline.append(DipamkaraHandler())
         pipeline.append(ExceptionNotifier())
         server = NioServer(
