@@ -28,8 +28,8 @@ setuptools.setup(
     packages=setuptools.find_packages(where="."),
     python_requires=">=3.10",
     install_requires=[
+        'dipamkara',
         'colorama>=0.4.6',
-        'dipamkara>=0.3.8',
         'argparse>=1.4.0',
         'PyYAML>=6.0.2'
     ],
