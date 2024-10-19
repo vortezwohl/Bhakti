@@ -27,7 +27,7 @@ from bhakti.const import (
     UTF_8
 )
 
-__VERSION__ = "0.2.18"
+__VERSION__ = "0.2.19"
 __AUTHOR__ = "Vortez Wohl"
 log = logging.getLogger("bhakti")
 
