@@ -139,6 +139,10 @@ Powered by <a href="https://github.com/vortezwohl/Dipamkara">Dipamkara</a>
   if __name__ == '__main__':
       asyncio.run(main())
   ```
+  
+- ### Projects Related
+  
+  - [Bhakti based memory retrieval dialogue solution](https://github.com/vortezwohl/bhakti-based-memory-llm)
 
 <p align="center">
 <img src="https://github.com/vortezwohl/Bhakti/releases/download/icon/Bhakti.png" width="400">
