@@ -9,19 +9,9 @@ Powered by <a href="https://github.com/vortezwohl/Dipamkara">Dipamkara</a>
 
 
 
-## Bhakti is
+## Abstract
 
-  1. A light-weight vector database
-
-  2. Easy to use
-
-  3. Thread safe
-
-  4. Portable
-
-  5. Reliable
-
-  6. Suitable for small-sized datasets
+With the rapid development of big data and artificial intelligence technologies, the demand for effective processing and retrieval of vector data is growing. Against this backdrop, I have developed the Bhakti vector database, aiming to provide a lightweight and easy-to-deploy solution to meet the storage and semantic search needs of small and medium-sized datasets. Bhakti supports a variety of similarity calculation methods and a domain-specific language (DSL) for document-based pattern matching pre-filtering, facilitating migration of data with its portable data files, flexible data management and seamless integration with Python3. Furthermore, I propose a memory-enhanced large language model dialogue solution based on the Bhakti database, which can assign different weights to the question and answer in dialogue history, achieving fine-grained control over the semantic importance of each segment in a single dialogue history. Through experimental validation, my method shows significant performance in the application of semantic search and question-answering systems. Although there are limitations in processing large datasets, such as not supporting approximate calculation methods like HNSW, the lightweight nature of Bhakti gives it a clear advantage in scenarios involving small and medium-sized datasets.
 
 ## Citation
 
