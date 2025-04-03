@@ -23,6 +23,25 @@ Powered by <a href="https://github.com/vortezwohl/Dipamkara">Dipamkara</a>
 
   6. Suitable for small-sized datasets
 
+## Citation
+
+If you are incorporating `Bhakti` into your research, please remember to properly **cite** it to acknowledge its contribution to your work.
+
+如果您正在將 `Bhakti` 整合到您的研究中，請務必正確引用它，以聲明它對您工作的貢獻.
+
+```latex
+@article{wu2025bhakti,
+  author = {Zihao Wu},
+  title = {Bhakti: A Lightweight Vector Database Management System for Endowing Large Language Models with Semantic Search Capabilities and Memory},
+  journal = {arXiv preprint},
+  year = {2025},
+  eprint = {2504.01553},
+  archivePrefix = {arXiv},
+  primaryClass = {cs.DB},
+  url = {https://arxiv.org/abs/2504.01553}
+}
+```
+
 ## Installation
 
 - From [PYPI](https://pypi.org/project/bhakti/)
