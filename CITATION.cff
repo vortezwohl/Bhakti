@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: If you use this software, please cite it using the following metadata.
+authors:
+  - family-names: Wu
+    given-names: Zihao
+    affiliation: Fujian University of Technology
+    orcid: "https://orcid.org/0009-0003-2474-2092"
+title: "Bhakti: A Lightweight Vector Database Management System for Endowing Large Language Models with Semantic Search Capabilities and Memory"
+version: 1.0.0
+date-released: 2025-04-03
+doi: 10.48550/ARXIV.2504.01553
+abstract: >
+    With the rapid development of big data and artificial intelligence technologies, the demand for effective processing and retrieval of vector data is growing. Against this backdrop, I have developed the Bhakti vector database, aiming to provide a lightweight and easy-to-deploy solution to meet the storage and semantic search needs of small and medium-sized datasets. Bhakti supports a variety of similarity calculation methods and a domain-specific language (DSL) for document-based pattern matching pre-filtering, facilitating migration of data with its portable data files, flexible data management and seamless integration with Python3. Furthermore, I propose a memory-enhanced large language model dialogue solution based on the Bhakti database, which can assign different weights to the question and answer in dialogue history, achieving fine-grained control over the semantic importance of each segment in a single dialogue history. Through experimental validation, my method shows significant performance in the application of semantic search and question-answering systems. Although there are limitations in processing large datasets, such as not supporting approximate calculation methods like HNSW, the lightweight nature of Bhakti gives it a clear advantage in scenarios involving small and medium-sized datasets.
+keywords:
+  - Vector Database
+  - Semantic Search
+  - RAG
+  - Conversational AI
+repository-code: "https://github.com/vortezwohl/Bhakti"
+url: "https://arxiv.org/abs/2504.01553"
