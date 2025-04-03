@@ -5,7 +5,7 @@ authors:
     given-names: "Zihao"
     affiliation: Fujian University of Technology
     orcid: "https://orcid.org/0009-0003-2474-2092"
-title: "Bhakti: A Lightweight Vector Database Management System for Endowing Large Language Models with Semantic Search Capabilities and Memory"
+title: Bhakti: A Lightweight Vector Database Management System for Endowing Large Language Models with Semantic Search Capabilities and Memory
 version: 1.0.0
 date-released: 2025-04-03
 doi: 10.48550/ARXIV.2504.01553
