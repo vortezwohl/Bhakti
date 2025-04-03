@@ -17,15 +17,3 @@ keywords:
   - Conversational AI
 repository-code: https://github.com/vortezwohl/Bhakti
 url: https://arxiv.org/abs/2504.01553
-preferred-citation:
-  type: article
-  id: wu2025bhakti
-  author:
-    name: Zihao Wu
-  title: Bhakti: A Lightweight Vector Database Management System for Endowing Large Language Models with Semantic Search Capabilities and Memory
-  journal: arXiv preprint
-  year: 2025
-  eprint: 2504.01553
-  archivePrefix: arXiv
-  primaryClass: cs.DB
-  url: https://arxiv.org/abs/2504.01553
